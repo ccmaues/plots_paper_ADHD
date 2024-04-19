@@ -39,9 +39,9 @@ data_male <-
   select(-sex)
 
 ## Data preparation for plot (all ages)
-pw0 <-
+calc_prev_by_age <- function(data, wave) {
   data %>%
-  filter(wave == "W0") %>%
+  filter(wave == {{wave}}) %>%
   group_by(diagnosis, age) %>%
   summarise(freq = n()) %>%
   spread(age, freq, fill = 0) %>%
@@ -52,31 +52,25 @@ pw0 <-
   rename(age = 1, control = 2, case = 3) %>%
   mutate(prev = case / (control + case)) %>%
   filter(control >= 100)
+}
 
-pw1 <-
-  data %>%
-  filter(wave == "W1") %>%
-  group_by(diagnosis, age) %>%
-  summarise(freq = n()) %>%
-  spread(age, freq, fill = 0) %>%
-  t() %>%
-  as.data.frame() %>%
-  slice(-1) %>%
-  tibble::rownames_to_column(var = "age_diagnosis") %>%
-  rename(age = 1, control = 2, case = 3) %>%
-  mutate(prev = case / (control + case)) %>%
-  filter(control >= 100)
+# Overall data
+overall_for_plot <- list(
+  W0 = calc_prev_by_age(data, "W0"),
+  W1 = calc_prev_by_age(data, "W1"),
+  W2 = calc_prev_by_age(data, "W2")
+  )
 
-pw2 <-
-  data %>%
-  filter(wave == "W2") %>%
-  group_by(diagnosis, age) %>%
-  summarise(freq = n()) %>%
-  spread(age, freq, fill = 0) %>%
-  t() %>%
-  as.data.frame() %>%
-  slice(-1) %>%
-  tibble::rownames_to_column(var = "age_diagnosis") %>%
-  rename(age = 1, control = 2, case = 3) %>%
-  mutate(prev = case / (control + case)) %>%
-  filter(control >= 100)
+# Female data
+female_for_plot <- list(
+  W0 = calc_prev_by_age(data_female, "W0"),
+  W1 = calc_prev_by_age(data_female, "W1"),
+  W2 = calc_prev_by_age(data_female, "W2")
+  )
+
+# Male data
+female_for_plot <- list(
+  W0 = calc_prev_by_age(data_male, "W0"),
+  W1 = calc_prev_by_age(data_male, "W1"),
+  W2 = calc_prev_by_age(data_male, "W2")
+  )
