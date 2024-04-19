@@ -108,46 +108,48 @@ w0 <- ggplot(w0_for_plot, aes(x = age, y = Overall * 100)) +
   stat_smooth(
     method = "lm", formula = y ~ x, geom = "smooth", se = FALSE,
     color = "#ff0000ef", linetype = "dashed", linewidth = 1) +
-  geom_line(linewidth = 1.5, alpha = 0.6) +
+  geom_line(linewidth = 1.5, alpha = 0.4) +
   geom_point(size = 5, color = "#65ADC2") +
   geom_errorbar(aes(
     x = age, ymin = (Overall * 100) - stat_overall_w0[4],
     ymax = (Overall * 100) + stat_overall_w0[5]),
     position = position_dodge(0.05),
     width = 0.3, linewidth = 2,
-    alpha = 0.6, color = "#65ADC2") +
+    alpha = 0.4, color = "#65ADC2") +
     scale_x_continuous(n.breaks = 8) +
-  #scale_y_continuous(n.breaks = 10, limits = c(10, 20)) +
+  scale_y_continuous(n.breaks = 8, limits = c(2, 24)) +
   theme_publish()
+
 w1 <- ggplot(w1_for_plot, aes(x = age, y = Overall * 100)) +
   stat_smooth(
     method = "lm", formula = y ~ x, geom = "smooth", se = FALSE,
     color = "#ff0000ef", linetype = "dashed", linewidth = 1) +
-  geom_line(linewidth = 1.5, alpha = 0.6, color = "#233B43") +
+  geom_line(linewidth = 1.5, alpha = 0.4, color = "#233B43") +
   geom_point(size = 5, color = "#233B43") +
   geom_errorbar(aes(
     x = age, ymin = (Overall * 100) - stat_overall_w1[4],
     ymax = (Overall * 100) + stat_overall_w1[5]),
     position = position_dodge(0.05),
     width = 0.3, linewidth = 2,
-    alpha = 0.6, color = "#233B43") +
+    alpha = 0.4, color = "#233B43") +
     scale_x_continuous(n.breaks = 8) +
-  #scale_y_continuous(n.breaks = 10, limits = c(10, 20)) +
+  scale_y_continuous(n.breaks = 8, limits = c(2, 24)) +
   theme_publish()
+
 w2 <- ggplot(w2_for_plot, aes(x = age, y = Overall * 100)) +
   stat_smooth(
     method = "lm", formula = y ~ x, geom = "smooth", se = FALSE,
     color = "#ff0000ef", linetype = "dashed", linewidth = 1) +
-  geom_line(linewidth = 1.5, alpha = 0.6, color = "#E84646") +
+  geom_line(linewidth = 1.5, alpha = 0.4, color = "#E84646") +
   geom_point(size = 5, color = "#E84646") +
   geom_errorbar(aes(
     x = age, ymin = (Overall * 100) - stat_overall_w2[4],
     ymax = (Overall * 100) + stat_overall_w2[5]),
     position = position_dodge(0.05),
     width = 0.3, linewidth = 2,
-    alpha = 0.6, color = "#E84646") +
+    alpha = 0.4, color = "#E84646") +
     scale_x_continuous(n.breaks = 8) +
-  #scale_y_continuous(n.breaks = 10, limits = c(10, 20)) +
+  scale_y_continuous(n.breaks = 8, limits = c(2, 24)) +
   theme_publish()
 w2
 colors <- c("#65ADC2", "#233B43", "#E84646")
