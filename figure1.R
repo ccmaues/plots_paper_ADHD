@@ -1,0 +1,143 @@
+source("functions_to_source.R")
+
+# PRS data
+vADHD <-
+select(prs, IID, ADHD) %>%
+rename(PRS = ADHD)
+
+# Phenotype data
+pADHD <-
+select(pheno, IID, wave, dcanyhk) %>%
+rename(ADHD = dcanyhk) %>%
+tidyr::pivot_wider(
+  names_from = "wave",
+  values_from = "ADHD"
+) %>%
+inner_join(., sex, by = "IID")
+
+# Working data
+data <-
+inner_join(vADHD, pADHD, by = "IID") %>%
+select(-sex)
+
+data_female <-
+inner_join(vADHD, pADHD, by = "IID") %>%
+filter(sex == "Female") %>%
+select(-sex)
+
+data_male <-
+inner_join(vADHD, pADHD, by = "IID") %>%
+filter(sex == "Male") %>%
+select(-sex)
+
+# Prevalence calculation (Overall)
+p1 <-
+calc_prev(data, 5, "PRS", "W0") %>%
+rename(W0 = 2)
+
+p2 <-
+calc_prev(data, 5, "PRS", "W1") %>%
+rename(W1 = 2)
+
+p3 <-
+calc_prev(data, 5, "PRS", "W2") %>%
+rename(W2 = 2)
+
+# Prevalence calculation (Female)
+p1_fem <-
+calc_prev(data_female, 5, "PRS", "W0") %>%
+rename(W0 = 2)
+
+p2_fem <-
+calc_prev(data_female, 5, "PRS", "W1") %>%
+rename(W1 = 2)
+
+p3_fem <-
+calc_prev(data_female, 5, "PRS", "W2") %>%
+rename(W2 = 2)
+
+# Prevalence calculation (Male)
+p1_male <-
+calc_prev(data_male, 5, "PRS", "W0") %>%
+rename(W0 = 2)
+
+p2_male <-
+calc_prev(data_male, 5, "PRS", "W1") %>%
+rename(W1 = 2)
+
+p3_male <-
+calc_prev(data_male, 5, "PRS", "W2") %>%
+rename(W2 = 2)
+
+# Plot data preparation
+for_plot_overall <-
+plyr::join_all(
+  list(p1, p2, p3),
+  by = "ntile",
+  type = "inner") %>%
+tidyr::pivot_longer(
+  cols = starts_with("W"),
+  values_to = "prevalence",
+  names_to = "wave"
+  ) %>%
+mutate(gp = "Overall")
+
+for_plot_female <-
+plyr::join_all(
+  list(p1_fem, p2_fem, p3_fem),
+  by = "ntile",
+  type = "inner") %>%
+tidyr::pivot_longer(
+  cols = starts_with("W"),
+  values_to = "prevalence",
+  names_to = "wave"
+  ) %>%
+mutate(gp = "Female")
+
+for_plot_male <-
+plyr::join_all(
+  list(p1_male, p2_male, p3_male),
+  by = "ntile",
+  type = "inner") %>%
+tidyr::pivot_longer(
+  cols = starts_with("W"),
+  values_to = "prevalence",
+  names_to = "wave"
+  ) %>%
+mutate(gp = "Male")
+
+for_plot_sex <- bind_rows(for_plot_female, for_plot_male)
+
+new_x_axis <- c("1st", "2nd", "3rd", "4th", "5th")
+ggthemr("fresh")
+
+all_plots <- bind_rows(for_plot_female, for_plot_male, for_plot_overall) %>%
+mutate(tags = case_when(
+  gp == "Female" ~ "C",
+  gp == "Male" ~ "B",
+  gp == "Overall" ~ "A"
+))
+all_plots$tags <- factor(all_plots$tags, levels = c("A", "B", "C"))
+finalv2 <-
+ggplot(all_plots, aes(ntile, prevalence * 100, color = wave, group = wave)) +
+  geom_line(linetype = "dashed", alpha = 0.6) +
+  geom_point() +
+  scale_x_discrete(labels = new_x_axis) +
+  scale_y_continuous(n.breaks = 10, limits = c(5, 24)) +
+  theme_publish(base_size = 7) +
+  labs(y = "\nPrevalence\n", x = "\nPRS quantile\n") +
+  theme(
+    text = element_text(family = "Arial"),
+    axis.line = element_line(linewidth = 1),
+    legend.position = "top",
+    legend.title = element_blank(),
+    strip.text.x = element_text(color = "black", face = "bold", vjust = 2)) +
+  facet_wrap( ~ tags, scales = "free_y", nrow = 3)
+  
+finalv2
+
+ggsave(
+  "Figure1_version2.png", finalv2, device = "png",
+  width = 85, height = 150, units = c("mm"),
+  dpi = 300, bg = "white"
+)
