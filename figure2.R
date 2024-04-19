@@ -39,7 +39,7 @@ data_male <-
   select(-sex)
 
 ## Data preparation for plot (all ages)
-calc_prev_by_age <- function(data, wave, threshold) {
+calc_prev_by_age <- function(data, wave, new_column_name) {
   data %>%
   filter(wave == {{wave}}) %>%
   group_by(diagnosis, age) %>%
@@ -51,29 +51,33 @@ calc_prev_by_age <- function(data, wave, threshold) {
   tibble::rownames_to_column(var = "age_diagnosis") %>%
   rename(age = 1, control = 2, case = 3) %>%
   mutate(prev = case / (control + case)) %>%
-  filter(control >= as.numeric({{threshold}})) %>%
-  select(-control, -case)
+  filter(control >= 20) %>%
+  select(-control, -case) %>%
+  rename({{new_column_name}} := 2)
 }
 
 # W0 data
-w0_for_plot <- list(
-  Overall = calc_prev_by_age(data, "W0", "100"),
-  Female = calc_prev_by_age(data_female, "W0", "20"),
-  Male = calc_prev_by_age(data_male, "W0", "20")
+w0_for_plot <- plyr::join_all(list(
+  calc_prev_by_age(data, "W0", "All"),
+  calc_prev_by_age(data_female, "W0", "Female"),
+  calc_prev_by_age(data_male, "W0", "Male")),
+  by = "age", type = "inner"
   )
 
 # Female data
-w1_for_plot <- list(
-  Overall = calc_prev_by_age(data, "W1", "overall"),
-  Female = calc_prev_by_age(data_female, "W1", "female"),
-  Male = calc_prev_by_age(data_male, "W1", "male")
+w2_for_plot <- plyr::join_all(list(
+  calc_prev_by_age(data, "W1", "All"),
+  calc_prev_by_age(data_female, "W1", "Female"),
+  calc_prev_by_age(data_male, "W1", "Male")),
+  by = "age", type = "inner"
   )
 
 # Male data
-w2_for_plot <- list(
-  Overall = calc_prev_by_age(data, "W2", "overall"),
-  Female = calc_prev_by_age(data_female, "W2", "female"),
-  Male = calc_prev_by_age(data_male, "W2", "male")
+w2_for_plot <- plyr::join_all(list(
+  calc_prev_by_age(data, "W2", "All"),
+  calc_prev_by_age(data_female, "W2", "Female"),
+  calc_prev_by_age(data_male, "W2", "Male")),
+  by = "age", type = "inner"
   )
 
 # Data plotting
