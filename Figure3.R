@@ -1,6 +1,5 @@
 source("functions_to_source.R")
 
-# Male and female plots
 # Phenotype data
 pADHD <-
   select(pheno, IID, wave, dcanyhk) %>%
@@ -54,7 +53,7 @@ theme(
   axis.text = element_text(color = "black"),
   legend.position = "none",
   panel.grid.major.y = element_blank(),
-  panel.grid.major.x = element_line(color = "#dad9d9"),
+  panel.grid.major.x = element_blank(),
   axis.line.x = element_line(color = "black"),
   axis.ticks.x = element_line(color = "black"),
   axis.title.x = element_text(color = "black"))
