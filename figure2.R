@@ -24,20 +24,6 @@ plyr::join_all(
 mutate(age = round(age, digits = 0)) %>%
 rename(diagnosis = ADHD)
 
-# Female subset
-data_female <-
-  inner_join(data, sex, by = "IID") %>%
-  filter(sex == "Female") %>%
-  mutate(age = round(age, digits = 0)) %>%
-  select(-sex)
-
-# Male subset
-data_male <-
-  inner_join(data, sex, by = "IID") %>%
-  filter(sex == "Male") %>%
-  mutate(age = round(age, digits = 0)) %>%
-  select(-sex)
-
 ## Data preparation for plot (all ages)
 calc_prev_by_age <- function(data, wave, new_column_name) {
   data %>%
@@ -56,60 +42,29 @@ calc_prev_by_age <- function(data, wave, new_column_name) {
   rename({{new_column_name}} := 2)
 }
 
+## Overall data
 # W0 data
-w0_for_plot <- plyr::join_all(list(
-  calc_prev_by_age(data, "W0", "Overall"),
-  calc_prev_by_age(data_female, "W0", "Female"),
-  calc_prev_by_age(data_male, "W0", "Male")),
-  by = "age", type = "inner") %>%
+w0_for_plot <-
+  calc_prev_by_age(data, "W0", "Overall") %>%
   mutate(age = as.numeric(age))
 
-# Female data
-w1_for_plot <- plyr::join_all(list(
-  calc_prev_by_age(data, "W1", "Overall"),
-  calc_prev_by_age(data_female, "W1", "Female"),
-  calc_prev_by_age(data_male, "W1", "Male")),
-  by = "age", type = "inner") %>%
+# W1 data
+w1_for_plot <-
+  calc_prev_by_age(data, "W1", "Overall") %>%
   mutate(age = as.numeric(age))
 
-# Male data
-w2_for_plot <- plyr::join_all(list(
-  calc_prev_by_age(data, "W2", "Overall"),
-  calc_prev_by_age(data_female, "W2", "Female"),
-  calc_prev_by_age(data_male, "W2", "Male")),
-  by = "age", type = "inner") %>%
+# W2 data
+w2_for_plot <-
+  calc_prev_by_age(data, "W2", "Overall") %>%
   mutate(age = as.numeric(age))
-
-# a minha pergunta é: o nrow que eu uso é o
-# antigo ou o novo de tirar coisas sem 20 hits?
-stat_overall_w0 <- c(
-  mean = mean(w0_for_plot$Overall), sd = sd(w0_for_plot$Overall),
-  se = sd(w0_for_plot$Overall) / sqrt(nrow(w0_for_plot)),
-  lower = t.test(w0_for_plot$Overall)$conf.int[1],
-  upper = t.test(w0_for_plot$Overall)$conf.int[2]
-  )
-
-stat_overall_w1 <- c(
-  mean = mean(w1_for_plot$Overall), sd = sd(w1_for_plot$Overall),
-  se = sd(w1_for_plot$Overall) / sqrt(nrow(w1_for_plot)),
-  lower = t.test(w1_for_plot$Overall)$conf.int[1],
-  upper = t.test(w1_for_plot$Overall)$conf.int[2]
-  )
-
-stat_overall_w2 <- c(
-  mean = mean(w2_for_plot$Overall), sd = sd(w2_for_plot$Overall),
-  se = sd(w2_for_plot$Overall) / sqrt(nrow(w2_for_plot)),
-  lower = t.test(w2_for_plot$Overall)$conf.int[1],
-  upper = t.test(w2_for_plot$Overall)$conf.int[2]
-  )
 
 # Data plotting
 w0 <- ggplot(w0_for_plot, aes(x = age, y = Overall * 100)) +
   stat_smooth(
     method = "lm", formula = y ~ x, geom = "smooth", se = FALSE,
     color = "#ff0000ef", linetype = "dashed", linewidth = 1) +
-  geom_line(linewidth = 1.5, alpha = 0.4) +
-  geom_point(size = 5, color = "#65ADC2") +
+  geom_line(linewidth = 1, alpha = 0.4) +
+  geom_point(size = 2, color = "#65ADC2") +
   geom_errorbar(aes(
     x = age, ymin = (Overall * 100) - stat_overall_w0[4],
     ymax = (Overall * 100) + stat_overall_w0[5]),
@@ -118,14 +73,16 @@ w0 <- ggplot(w0_for_plot, aes(x = age, y = Overall * 100)) +
     alpha = 0.4, color = "#65ADC2") +
     scale_x_continuous(n.breaks = 8) +
   scale_y_continuous(n.breaks = 8, limits = c(2, 24)) +
+  labs(y = "\n\n", x = "\n") +
   theme_publish()
+# min: 0.26 e  -0.02
 
 w1 <- ggplot(w1_for_plot, aes(x = age, y = Overall * 100)) +
   stat_smooth(
     method = "lm", formula = y ~ x, geom = "smooth", se = FALSE,
     color = "#ff0000ef", linetype = "dashed", linewidth = 1) +
-  geom_line(linewidth = 1.5, alpha = 0.4, color = "#233B43") +
-  geom_point(size = 5, color = "#233B43") +
+  geom_line(linewidth = 1, alpha = 0.4, color = "#233B43") +
+  geom_point(size = 2, color = "#233B43") +
   geom_errorbar(aes(
     x = age, ymin = (Overall * 100) - stat_overall_w1[4],
     ymax = (Overall * 100) + stat_overall_w1[5]),
@@ -134,14 +91,15 @@ w1 <- ggplot(w1_for_plot, aes(x = age, y = Overall * 100)) +
     alpha = 0.4, color = "#233B43") +
     scale_x_continuous(n.breaks = 8) +
   scale_y_continuous(n.breaks = 8, limits = c(2, 24)) +
+  labs(y = "\nPrevalence %\n", x = "\n") +
   theme_publish()
 
 w2 <- ggplot(w2_for_plot, aes(x = age, y = Overall * 100)) +
   stat_smooth(
     method = "lm", formula = y ~ x, geom = "smooth", se = FALSE,
     color = "#ff0000ef", linetype = "dashed", linewidth = 1) +
-  geom_line(linewidth = 1.5, alpha = 0.4, color = "#E84646") +
-  geom_point(size = 5, color = "#E84646") +
+  geom_line(linewidth = 1, alpha = 0.4, color = "#E84646") +
+  geom_point(size = 2, color = "#E84646") +
   geom_errorbar(aes(
     x = age, ymin = (Overall * 100) - stat_overall_w2[4],
     ymax = (Overall * 100) + stat_overall_w2[5]),
@@ -150,9 +108,8 @@ w2 <- ggplot(w2_for_plot, aes(x = age, y = Overall * 100)) +
     alpha = 0.4, color = "#E84646") +
     scale_x_continuous(n.breaks = 8) +
   scale_y_continuous(n.breaks = 8, limits = c(2, 24)) +
+  labs(y = "\n\n", x = "\nAge (yr)") +
   theme_publish()
-w2
-colors <- c("#65ADC2", "#233B43", "#E84646")
 
 library(ggpubr)
 
@@ -161,3 +118,12 @@ final <- ggarrange(
   font.label = list(size = 7, color = "black", face = "bold", family = "Arial")
 )
 final
+
+ggsave(
+  "Figure2.png", final, device = "png",
+  width = 85, height = 150, units = c("mm"),
+  dpi = 300, bg = "white"
+)
+
+
+colors <- c("#65ADC2", "#233B43", "#E84646")
