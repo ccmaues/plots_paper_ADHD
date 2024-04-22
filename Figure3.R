@@ -38,10 +38,10 @@ ggdist::stat_halfeye(
 geom_boxplot(
   width = 0.15, outlier.shape = 19, outlier.size = 1,
   color = "black", position = position_dodge(width = 0.75),
-  coef = 1, notch = FALSE, alpha = 0.9, show.legend = FALSE) +
+  coef = 1, notch = FALSE, alpha = 0.9) +
 gghalves::geom_half_point(
   size = 1, side = "l", range_scale = 0.4,
-  alpha = 0.2, shape = 21, show.legend = FALSE) +
+  alpha = 0.1, shape = 21) +
 scale_y_continuous(n.breaks = 10) +
 scale_x_discrete(expand = expansion(mult = c(0, 0))) +
 coord_flip() +
@@ -49,12 +49,15 @@ labs(y = "Age (yr)\n") +
 theme(
   text = element_text(family = "Arial", size = 7),
   axis.title.y = element_blank(),
-  axis.text.y = element_blank(),
   axis.ticks.y = element_blank(),
   axis.line.y = element_blank(),
+  axis.text = element_text(color = "black"),
+  legend.position = "none",
   panel.grid.major.y = element_blank(),
+  panel.grid.major.x = element_line(color = "#dad9d9"),
   axis.line.x = element_line(color = "black"),
-  axis.ticks.x = element_line(color = "black"))
+  axis.ticks.x = element_line(color = "black"),
+  axis.title.x = element_text(color = "black"))
 
 final
 
