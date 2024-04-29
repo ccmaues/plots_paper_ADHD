@@ -2,7 +2,7 @@ source("functions_to_source.R")
 
 # PRS data
 vADHD <-
-select(prs, IID, ADHD) %>%
+select(prs_v2, IID, ADHD) %>%
 rename(PRS = ADHD)
 
 # Phenotype data
