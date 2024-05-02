@@ -47,82 +47,103 @@ calc_prev_by_age <- function(data, wave, new_column_name) {
   rename(age = 1, control = 2, case = 3) %>%
   mutate(prev = case / (control + case)) %>%
   filter(control >= 20) %>%
-  select(-control, -case) %>%
-  rename({{new_column_name}} := 2)
+  select(-control) %>% # keep only case N
+  rename({{new_column_name}} := 3, N = case)
 }
 
-## Overall data
-overall_plot <-
-  bind_rows(
-  calc_prev_by_age(data, "W0", "Overall"),
-  calc_prev_by_age(data, "W1", "Overall"),
-  calc_prev_by_age(data, "W2", "Overall")) %>%
-mutate(age = as.numeric(age))
-
-## Female data
-female_plot <-
-  bind_rows(
-  calc_prev_by_age(data_female, "W0", "Female"),
-  calc_prev_by_age(data_female, "W1", "Female"),
-  calc_prev_by_age(data_female, "W2", "Female")) %>%
+# Overall data
+overall_for_plot <-
+  rbind(
+    cbind(calc_prev_by_age(data, "W2", "prevalence"), wave = "W2"),
+    cbind(calc_prev_by_age(data, "W1", "prevalence"), wave = "W1"),
+    cbind(calc_prev_by_age(data, "W0", "prevalence"), wave = "W0")) %>%
   mutate(age = as.numeric(age))
 
-# W2 data
-male_plot <-
-  bind_rows(
-  calc_prev_by_age(data_male, "W0", "Male"),
-  calc_prev_by_age(data_male, "W1", "Male"),
-  calc_prev_by_age(data_male, "W2", "Male")) %>%
+# female data
+female_for_plot <-
+  rbind(
+    cbind(calc_prev_by_age(data_female, "W2", "prevalence"), wave = "W2"),
+    cbind(calc_prev_by_age(data_female, "W1", "prevalence"), wave = "W1"),
+    cbind(calc_prev_by_age(data_female, "W0", "prevalence"), wave = "W0")) %>%
+  mutate(age = as.numeric(age))
+  
+# male data
+male_for_plot <-
+  rbind(
+    cbind(calc_prev_by_age(data_male, "W2", "prevalence"), wave = "W2"),
+    cbind(calc_prev_by_age(data_male, "W1", "prevalence"), wave = "W1"),
+    cbind(calc_prev_by_age(data_male, "W0", "prevalence"), wave = "W0")) %>%
   mutate(age = as.numeric(age))
 
-for_plot_sex <-
-  do.call(cbind, c(female_plot, male_plot)) %>%
-  data.frame() %>%
-  select(-3) %>%
-  tidyr::pivot_longer(
-    cols = c("Female", "Male"),
-    names_to = "gp",
-    values_to = "prevalence"
-  )
+# não dá pra fazer assim
+# pq tem idade de se repete em cada wave
+# então seria bom colocar a wave aqui
+# como color e group sex
+
+ggthemr("fresh")
 
 # Data plotting
-## Overall
+## Overall (gotta put size = N)
 p1 <-
-ggplot(overall_plot, aes(x = age, y = Overall * 100)) +
+ggplot(overall_for_plot, aes(x = age, y = prevalence * 100, color = wave, group = wave)) +
   stat_smooth(
     method = "lm", formula = y ~ x, geom = "smooth", se = FALSE,
-    color = "#ff000060", linetype = "dashed", linewidth = 1) +
+    linetype = "dashed", linewidth = 1) +
   geom_line(linewidth = 1, alpha = 0.4) +
-  geom_point(size = 2) +
+  geom_point(aes(size = N)) +
   scale_x_continuous(n.breaks = 24) +
-  scale_y_continuous(n.breaks = 20, limits = c(0, 24)) +
+  scale_y_continuous(n.breaks = 8, limits = c(0, 24)) +
   labs(y = "\n", x = "") +
-  theme_publish()
+  theme_publish() +
+  theme(
+    axis.line.x = element_blank(),
+    axis.ticks.x = element_blank(),
+    axis.text.x = element_blank()
+  )
 
-## Sex plot
+## Female
 p2 <-
-ggplot(for_plot_sex, aes(x = age, y = prevalence * 100, color = gp, group = gp)) +
+ggplot(female_for_plot, aes(x = age, y = prevalence * 100, color = wave, group = wave)) +
   stat_smooth(
     method = "lm", formula = y ~ x, geom = "smooth", se = FALSE,
-    linetype = "dashed", linewidth = 1, aes(color = gp)) +
+    linetype = "dashed", linewidth = 1) +
   geom_line(linewidth = 1, alpha = 0.4) +
-  geom_point(size = 2) +
+  geom_point(aes(size = N)) +
   scale_x_continuous(n.breaks = 24) +
-  scale_y_continuous(n.breaks = 20, limits = c(0, 24)) +
-  labs(y = "\n", x = "") +
+  scale_y_continuous(n.breaks = 8, limits = c(0, 24)) +
+  labs(y = "\nPrevalence", x = "") +
+  theme_publish() +
+  theme(
+    axis.line.x = element_blank(),
+    axis.ticks.x = element_blank(),
+    axis.text.x = element_blank()
+  )
+
+## Male
+p3 <-
+ggplot(male_for_plot, aes(x = age, y = prevalence * 100, color = wave, group = wave)) +
+  stat_smooth(
+    method = "lm", formula = y ~ x, geom = "smooth", se = FALSE,
+    linetype = "dashed", linewidth = 1) +
+  geom_line(linewidth = 1, alpha = 0.4) +
+  geom_point(aes(size = N)) +
+  scale_x_continuous(n.breaks = 24) +
+  scale_y_continuous(n.breaks = 8, limits = c(0, 24)) +
+  labs(y = "\n", x = "Age (yr)") +
   theme_publish()
 
 library(ggpubr)
 
 final <-
   ggarrange(
-    p1, p2, nrow = 2, labels = c("A", "B"),
-    font.label = list(size = 7, color = "black", face = "bold", family = "Arial")
+    p1, p2, p3, nrow = 3, labels = c("A", "B", "C"),
+    font.label = list(size = 15, color = "black", face = "bold", family = "Arial"),
+    common.legend = TRUE, widths = 1.5, heights = 1
   )
 
 ggsave(
   "Figure2_v2.png", final, device = "png",
-  width = 85, height = 150, units = c("mm"),
+  width = 200, height = 300, units = c("mm"),
   dpi = 300, bg = "white")
 
 colors <- c("#65ADC2", "#233B43", "#E84646")
