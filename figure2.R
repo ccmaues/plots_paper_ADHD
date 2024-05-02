@@ -81,16 +81,19 @@ male_for_plot <-
 # como color e group sex
 
 ggthemr("fresh")
+library(ggnewscale)
 
 # Data plotting
 ## Overall (gotta put size = N)
 p1 <-
 ggplot(overall_for_plot, aes(x = age, y = prevalence * 100, color = wave, group = wave)) +
-  stat_smooth(
-    method = "lm", formula = y ~ x, geom = "smooth", se = FALSE,
-    linetype = "dashed", linewidth = 1) +
   geom_line(linewidth = 1, alpha = 0.4) +
   geom_point(aes(size = N)) +
+  new_scale_color() +
+  stat_smooth(
+    method = "lm", formula = y ~ x, geom = "smooth", se = FALSE,
+    linetype = "dashed", linewidth = 1, aes(color = wave)) +
+  scale_color_manual(values = c("#65acc27b", "#233b436f", "#e8464668")) +
   scale_x_continuous(n.breaks = 24) +
   scale_y_continuous(n.breaks = 8, limits = c(0, 24)) +
   labs(y = "\n", x = "") +
@@ -104,11 +107,13 @@ ggplot(overall_for_plot, aes(x = age, y = prevalence * 100, color = wave, group 
 ## Female
 p2 <-
 ggplot(female_for_plot, aes(x = age, y = prevalence * 100, color = wave, group = wave)) +
-  stat_smooth(
-    method = "lm", formula = y ~ x, geom = "smooth", se = FALSE,
-    linetype = "dashed", linewidth = 1) +
   geom_line(linewidth = 1, alpha = 0.4) +
   geom_point(aes(size = N)) +
+  new_scale_color() +
+  stat_smooth(
+    method = "lm", formula = y ~ x, geom = "smooth", se = FALSE,
+    linetype = "dashed", linewidth = 1, aes(color = wave)) +
+  scale_color_manual(values = c("#65acc27b", "#233b436f", "#e8464668")) +
   scale_x_continuous(n.breaks = 24) +
   scale_y_continuous(n.breaks = 8, limits = c(0, 24)) +
   labs(y = "\nPrevalence", x = "") +
@@ -122,11 +127,13 @@ ggplot(female_for_plot, aes(x = age, y = prevalence * 100, color = wave, group =
 ## Male
 p3 <-
 ggplot(male_for_plot, aes(x = age, y = prevalence * 100, color = wave, group = wave)) +
-  stat_smooth(
-    method = "lm", formula = y ~ x, geom = "smooth", se = FALSE,
-    linetype = "dashed", linewidth = 1) +
   geom_line(linewidth = 1, alpha = 0.4) +
   geom_point(aes(size = N)) +
+  new_scale_color() +
+  stat_smooth(
+    method = "lm", formula = y ~ x, geom = "smooth", se = FALSE,
+    linetype = "dashed", linewidth = 1, aes(color = wave)) +
+  scale_color_manual(values = c("#65acc27b", "#233b436f", "#e8464668")) +
   scale_x_continuous(n.breaks = 24) +
   scale_y_continuous(n.breaks = 8, limits = c(0, 24)) +
   labs(y = "\n", x = "Age (yr)") +
