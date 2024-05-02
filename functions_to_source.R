@@ -16,7 +16,7 @@ if (Sys.info()["sysname"] == "Linux") {
   Path <- "/media/santorolab/C207-3566"
   font <- "Ubuntu Condensed"
 } else {
-  Path <- "D:"
+  Path <- "E:"
   font <- "Arial Narrow"
 }
 pheno <- readRDS(glue("{Path}/objects_R/cass_BHRC_Mod_All_Phenotypes_29-02-2024.RDS"))
