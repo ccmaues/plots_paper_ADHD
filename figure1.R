@@ -2,7 +2,7 @@ source("functions_to_source.R")
 
 # PRS data
 vADHD <-
-select(prs_v2, IID, ADHD) %>%
+select(prs_v3, IID, ADHD) %>%
 rename(PRS = ADHD)
 
 # Phenotype data
@@ -137,7 +137,7 @@ ggplot(all_plots, aes(ntile, prevalence * 100, color = wave, group = wave)) +
 finalv2
 
 ggsave(
-  "Figure1_version2.png", finalv2, device = "png",
+  "Figure1_version3.png", finalv2, device = "png",
   width = 85, height = 150, units = c("mm"),
   dpi = 300, bg = "white"
 )

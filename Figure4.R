@@ -8,7 +8,7 @@ rename(diagnosis = dcanyhk)
 
 # Age data
 vADHD <-
-select(prs_v2, IID, ADHD) %>%
+select(prs_v3, IID, ADHD) %>%
 rename(PRS = ADHD)
 
 ## Working data
@@ -28,12 +28,10 @@ w0 <-
 data %>%
 filter(wave == "W0") %>%
 ggplot(aes(PRS, fill = diagnosis, color = diagnosis)) +
-geom_density(alpha = 0.2, size = 1) +
+geom_density(alpha = 0.2) +
 scale_fill_manual(values = c("red", "blue")) +
 theme_publish() +
 theme(
-  axis.line.x = element_line(linewidth = 1),
-  axis.line.y = element_line(linewidth = 1),
   text = element_text(size = 7),
   axis.text = element_text(size = 7)) +
   labs(y = "\n", x = "")
@@ -42,12 +40,10 @@ w1 <-
 data %>%
 filter(wave == "W1") %>%
 ggplot(aes(PRS, fill = diagnosis, color = diagnosis)) +
-geom_density(alpha = 0.2, size = 1) +
+geom_density(alpha = 0.2) +
 scale_fill_manual(values = c("red", "blue")) +
 theme_publish() +
 theme(
-  axis.line.x = element_line(linewidth = 1),
-  axis.line.y = element_line(linewidth = 1),
   text = element_text(size = 7),
   axis.text = element_text(size = 7)) +
   labs(y = "\nDensity", x = "")
@@ -56,12 +52,10 @@ w2 <-
 data %>%
 filter(wave == "W1") %>%
 ggplot(aes(PRS, fill = diagnosis, color = diagnosis)) +
-geom_density(alpha = 0.2, size = 1) +
+geom_density(alpha = 0.2) +
 scale_fill_manual(values = c("red", "blue")) +
 theme_publish() +
 theme(
-  axis.line.x = element_line(linewidth = 1),
-  axis.line.y = element_line(linewidth = 1),
   text = element_text(size = 7),
   axis.text = element_text(size = 7)) +
   labs(y = "\n", x = "PRS")
@@ -75,6 +69,6 @@ ggarrange(
   common.legend = TRUE)
 
 ggsave(
-  "Figure4.png", final, device = "png",
+  "Figure4_version2.png", final, device = "png",
   width = 85, height = 100, units = c("mm"),
   dpi = 300, bg = "white")
