@@ -3,7 +3,7 @@ source("functions_to_source.R")
 
 # PRS data
 vADHD <-
-select(prs_v2, IID, ADHD) %>%
+select(prs_v3, IID, ADHD) %>%
 rename(PRS = ADHD)
 
 # Phenotype data
@@ -16,7 +16,7 @@ tidyr::pivot_wider(
 )
 
 # Ancestry data
-anc <- readRDS("objects_R/cass_BHRC_ADMIXTURE.RDS") %>%
+anc <- readRDS(glue("{Path}/objects_R/cass_BHRC_ADMIXTURE.RDS")) %>%
 mutate(across(c("EUR", "AFR", "AMR"), ~ . * 100))
 
 # Working data
@@ -25,3 +25,16 @@ plyr::join_all(list(vADHD, pADHD, sex, ages, state, anc), by = "IID", type = "in
 
 library(psych)
 describe(data$EUR)
+describe(data$AMR)
+describe(data$AFR)
+
+describe(data$age_W0)
+describe(data$age_W1)
+describe(data$age_W2)
+
+table(data$sex)
+table(data$W0)
+table(data$W1)
+table(data$W2)
+
+table(data$popID)

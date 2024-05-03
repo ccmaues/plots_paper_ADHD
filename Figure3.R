@@ -37,7 +37,7 @@ ggdist::stat_halfeye(
 geom_boxplot(
   width = 0.15, outlier.shape = 19, outlier.size = 1,
   color = "black", position = position_dodge(width = 0.75),
-  coef = 1, notch = FALSE, alpha = 0.9) +
+  coef = 1, notch = FALSE, alpha = 0.9, linewidth = 0.3) +
 gghalves::geom_half_point(
   size = 1, side = "l", range_scale = 0.4,
   alpha = 0.1, shape = 21) +
@@ -54,8 +54,8 @@ theme(
   legend.position = "none",
   panel.grid.major.y = element_blank(),
   panel.grid.major.x = element_blank(),
-  axis.line.x = element_line(color = "black"),
-  axis.ticks.x = element_line(color = "black"),
+  axis.line.x = element_line(color = "black", linewidth = 0.2),
+  axis.ticks.x = element_line(color = "black",  linewidth = 0.2),
   axis.title.x = element_text(color = "black"))
 
 final

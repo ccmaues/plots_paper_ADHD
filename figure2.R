@@ -99,9 +99,12 @@ ggplot(overall_for_plot, aes(x = age, y = prevalence * 100, color = wave, group 
   labs(y = "\n", x = "") +
   theme_publish() +
   theme(
+    text = element_text(size = 15),
+    axis.text = element_text(size = 15),
     axis.line.x = element_blank(),
     axis.ticks.x = element_blank(),
-    axis.text.x = element_blank()
+    axis.text.x = element_blank(),
+    axis.line.y = element_line(color = "black", linewidth = 0.5)
   )
 
 ## Female
@@ -119,9 +122,12 @@ ggplot(female_for_plot, aes(x = age, y = prevalence * 100, color = wave, group =
   labs(y = "\nPrevalence", x = "") +
   theme_publish() +
   theme(
+    text = element_text(size = 15),
+    axis.text = element_text(size = 15),
     axis.line.x = element_blank(),
     axis.ticks.x = element_blank(),
-    axis.text.x = element_blank()
+    axis.text.x = element_blank(),
+    axis.line.y = element_line(color = "black", linewidth = 0.5)
   )
 
 ## Male
@@ -137,7 +143,13 @@ ggplot(male_for_plot, aes(x = age, y = prevalence * 100, color = wave, group = w
   scale_x_continuous(n.breaks = 24) +
   scale_y_continuous(n.breaks = 8, limits = c(0, 24)) +
   labs(y = "\n", x = "Age (yr)") +
-  theme_publish()
+  theme_publish() +
+  theme(
+    text = element_text(size = 15, family = "Arial"),
+    axis.text = element_text(size = 15),
+    axis.line.y = element_line(color = "black", linewidth = 0.5),
+    axis.line.x = element_line(color = "black", linewidth = 0.5)
+    )
 
 library(ggpubr)
 
