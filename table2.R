@@ -1,5 +1,5 @@
 # Association tests
-setwd("C:/Users/cassi/OneDrive/Área de Trabalho/github_files/plots_paper/")
+#setwd("C:/Users/cassi/OneDrive/Área de Trabalho/github_files/plots_paper/")
 source("functions_to_source.R")
 
 vADHD <-
@@ -97,6 +97,7 @@ for_glm <-
     diagnosis == 2 ~ 1,
     .default = 0
   ),
+  risk_gp = ntile(PRS, 3),
   risk_gp = as.factor(case_when(
     risk_gp == 1 ~ "low",
     risk_gp == 2 ~ "medium",
@@ -105,8 +106,6 @@ for_glm <-
 
 model1 <- glm(diagnosis ~ PRS:wave, for_glm, family = binomial)
 confint(model1)
-
-library(lmtest)
 summary(model1)
 
 ### diagnosis, PRS, sex, wave association
@@ -125,7 +124,6 @@ model_p <- glm(ADHD ~ PRS, for_glm_p, family = binomial)
 confint(model_p)
 
 ## 3 risk groups
-data$risk_gp <- ntile(data$PRS, 3)
 bind_cols(PRS = data$PRS, risk_gp = ntile(data$PRS, 3)) %>%
 group_by(risk_gp) %>%
 summarise(mean(PRS), median(PRS))
@@ -137,7 +135,11 @@ confint(model3)
 summary(model3)
 
 ## age
-
 model4 <- glm(diagnosis ~ PRS:age:wave, for_glm, family = binomial)
 confint(model4)
 summary(model4)
+
+## sex
+model5 <- glm(diagnosis ~ PRS:sex:wave, for_glm, family = binomial)
+confint(model5)
+summary(model5)
