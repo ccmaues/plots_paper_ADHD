@@ -59,7 +59,7 @@ select(IID, wave, dcanyhk) %>%
 rename(diagnosis = 3)
 
 data <-
-plyr::join_all(list(sex, vADHD, state, aADHD, ogvADHD), by = "IID", type = "inner") %>%
+plyr::join_all(list(sex, vADHD, state, aADHD, ogvADHD, data_pt), by = "IID", type = "inner") %>%
 inner_join(., pADHD, by = c("IID", "wave")) %>%
 filter(IID %in% ages$IID) %>%
 mutate(

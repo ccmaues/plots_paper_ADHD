@@ -4,8 +4,9 @@
 # created for use in our data
 
 pacman::p_load(
-  glue, dplyr, ggplot2, remotes, tidyr,
-  envalysis, extrafont, glue, ggthemr, data.table
+  glue, dplyr, ggplot2, remotes,
+  tidyr, envalysis, extrafont, glue,
+  ggthemr, data.table, purrr, gtsummary
 )
 
 # PRS value adjustment with all variables
@@ -86,4 +87,43 @@ calc_prev <- function(data, n, column_name, wave) {
       ntile = factor(ntile)) %>%
     select(-Control, -Case)
   return(p)
+}
+
+# add risk groups to data.frame based on given column
+add_risk <- function(data, column_name) {
+  opt <-
+    data %>%
+    mutate(diagnosis = case_when(
+      diagnosis == 2 ~ 1,
+      .default = 0),
+    gp_risk := ntile(!!column_name, 3),
+    gp_risk := as.factor(case_when(
+      gp_risk == 1 ~ "low",
+      gp_risk == 2 ~ "medium",
+      gp_risk == 3 ~ "high"))) %>%
+    select(-IID)
+  return(opt$gp_risk)
+}
+
+# calculate univariated GLM
+uni_model_cal <- function(data) {
+  colnames(data)[!colnames(data) == "diagnosis"] %>%
+  paste("diagnosis ~ ", .) %>%
+  map(.f = ~glm(formula = as.formula(.x),
+  family = "binomial", data = data)) %>%
+  map(.f = ~tidy(.x, exponentiate = TRUE, conf.int = TRUE)) %>%
+  bind_rows() %>%
+  mutate(
+  across(where(is.numeric), round, digits = 3),
+  p.value = format(p.value, scientific = TRUE))
+}
+
+# get ORs from data
+uni_model_OR <- function(data) {
+  data %>%
+  tbl_uvregression(
+    method = glm,
+    y = diagnosis,
+    method.args = list(family = binomial),
+    exponentiate = TRUE)
 }
