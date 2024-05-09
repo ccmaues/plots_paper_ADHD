@@ -6,7 +6,7 @@
 pacman::p_load(
   glue, dplyr, ggplot2, remotes,
   tidyr, envalysis, extrafont, glue,
-  ggthemr, data.table, purrr, gtsummary
+  ggthemr, data.table, purrr, gtsummary, broom
 )
 
 # PRS value adjustment with all variables
@@ -96,26 +96,25 @@ add_risk <- function(data, column_name) {
     mutate(diagnosis = case_when(
       diagnosis == 2 ~ 1,
       .default = 0),
-    gp_risk := ntile(!!column_name, 3),
-    gp_risk := as.factor(case_when(
+    gp_risk = ntile(!!sym(column_name), 3),
+    gp_risk = as.factor(case_when(
       gp_risk == 1 ~ "low",
       gp_risk == 2 ~ "medium",
-      gp_risk == 3 ~ "high"))) %>%
-    select(-IID)
+      gp_risk == 3 ~ "high")))
   return(opt$gp_risk)
 }
 
 # calculate univariated GLM
 uni_model_cal <- function(data) {
   colnames(data)[!colnames(data) == "diagnosis"] %>%
-  paste("diagnosis ~ ", .) %>%
+  paste("diagnosis ~", .) %>%
   map(.f = ~glm(formula = as.formula(.x),
   family = "binomial", data = data)) %>%
   map(.f = ~tidy(.x, exponentiate = TRUE, conf.int = TRUE)) %>%
   bind_rows() %>%
   mutate(
-  across(where(is.numeric), round, digits = 3),
-  p.value = format(p.value, scientific = TRUE))
+  across(where(is.numeric), round, digits = 3))
+#  p.value = format(p.value, scientific = TRUE))
 }
 
 # get ORs from data
