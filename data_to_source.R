@@ -30,6 +30,11 @@ parents <- readRDS(glue("{Path}/objects_R/cass_BHRC_parents_phenotype.RDS"))
 ## MAIN DATA USED IN THE ANALYSIS
 # made with the objects above
 
+data_pt <-
+parents %>%
+select(IID, ADHD) %>%
+rename(p_diagnosis = ADHD)
+
 vADHD <-
 prs_v3 %>%
 select(IID, ADHD) %>%

@@ -1,38 +1,10 @@
 #setwd("C:/Users/cassi/OneDrive/Área de Trabalho/github_files/plots_paper/")
-source("functions_to_source.R")
+source("data_to_source.R")
 
-#### DATA LOAD AND PREP
-vADHD <-
-prs_v3 %>%
-select(IID, ADHD) %>%
-rename(adjusted_PRS = ADHD)
+library(broom)
 
-ogvADHD <-
-fread(glue("{Path}/PRS_database/Final_Scores_PRSCS/PRSCS_ADHD_Score.profile")) %>%
-select(IID, PRSCS_zscore) %>%
-rename(original_PRS = 2)
-
-aADHD <-
-ages %>%
-tidyr::pivot_longer(
-  cols = c(2, 3, 4),
-  names_to = "wave",
-  values_to = "age")
-aADHD$wave <- gsub("age_", "", aADHD$wave)
-
-pADHD <-
-pheno %>%
-select(IID, wave, dcanyhk) %>%
-rename(diagnosis = 3)
-
-data <-
-plyr::join_all(list(sex, vADHD, state, aADHD, ogvADHD), by = "IID", type = "inner") %>%
-inner_join(., pADHD, by = c("IID", "wave")) %>%
-filter(IID %in% ages$IID) %>%
-mutate(
-  diagnosis = as.factor(diagnosis),
-  wave = as.factor(wave))
-
+# tenho que mudar esse aqui pq
+# do modo que tá, ele tá fazendo multivariada com wave e sexo
 for_glm <-
   data %>%
   mutate(diagnosis = case_when(
@@ -49,4 +21,34 @@ for_glm <-
     risk_gp_old == 1 ~ "low",
     risk_gp_old == 2 ~ "medium",
     risk_gp_old == 3 ~ "high"))) %>%
-  inner_join(., data_pt, by = "IID")
+  inner_join(., data_pt, by = "IID") %>%
+  select(-IID)
+
+## Looping to get multiple univariated models
+library(purrr)
+uni_models <-
+  colnames(for_glm)[!colnames(for_glm) == "diagnosis"] %>%
+  paste("diagnosis ~ ", .) %>%
+  map(.f = ~glm(formula = as.formula(.x),
+    family = "binomial", data = for_glm)) %>%
+  map(.f = ~tidy(.x, exponentiate = TRUE, conf.int = TRUE)) %>%
+  bind_rows() %>%
+  mutate(
+    across(where(is.numeric), round, digits = 3),
+    p.value = format(p.value, scientific = TRUE))
+View(uni_models)
+colnames(for_glm)[!colnames(for_glm) == "diagnosis"] %>%
+
+# gostei
+library(gtsummary)
+
+uni_tab <-
+for_glm %>%
+  tbl_uvregression(                         ## produce univariate table
+    method = glm,                           ## define regression want to run (generalised linear model)
+    y = diagnosis,                          ## define outcome variable
+    method.args = list(family = binomial),  ## define what type of glm want to run (logistic)
+    exponentiate = TRUE                     ## exponentiate to produce odds ratios (rather than log odds)
+  )
+
+uni_tab
