@@ -31,7 +31,7 @@ inner_join(., pADHD, by = c("IID", "wave")) %>%
 filter(IID %in% ages$IID) %>%
 mutate(
   diagnosis = as.factor(diagnosis),
-  wave = as.factor(wave),
+  wave = as.factor(wave)
   )
 
 non_redudant_data <-
