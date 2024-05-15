@@ -2,6 +2,9 @@
 source("data_to_source.R")
 source("functions_to_source.R")
 
+
+# summary(fit.ex4.1)$adj.r.squared
+
 ## For all observations (no time var)
 # I argue that because all samples appear 3 times,
 # it won't be an issue ni the GLM, cuz its almost
