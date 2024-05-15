@@ -89,9 +89,48 @@ filter(ad, IID %in% data$IID) %>%
 select(-IID) %>%
 tbl_summary()
 
+data <-
+  data %>%
+  mutate(ntile = as.factor(ntile(adjusted_PRS, 5)))
 
-# model 1
-# PRSadjusted + age
+data_female <- filter(data, sex == "Female")
+data_male <- filter(data, sex == "Male")
 
-car::vif(glm(diagnosis ~ adjusted_PRS + age + sex + popID, data, family = binomial))
+# how much is the "jump" of diagnosis for each
+# quintile in each wave?
+# colocar outros argumentos do tbl_regression dps
+first <-
+glm(diagnosis ~ wave, filter(data_male, ntile == 1), family = binomial) %>%
+# broom::tidy(exponentiate = TRUE, conf.int = TRUE) %>%
+# mutate(across(where(is.numeric), round, digits = 2))
+tbl_regression(., exponentiate = TRUE)
 
+second <-
+glm(diagnosis ~ wave, filter(data_male, ntile == 2), family = binomial) %>%
+# broom::tidy(exponentiate = TRUE, conf.int = TRUE) %>%
+# mutate(across(where(is.numeric), round, digits = 2))
+tbl_regression(., exponentiate = TRUE)
+
+third <-
+glm(diagnosis ~ wave, filter(data_male, ntile == 3), family = binomial) %>%
+# broom::tidy(exponentiate = TRUE, conf.int = TRUE) %>%
+# mutate(across(where(is.numeric), round, digits = 2))
+tbl_regression(., exponentiate = TRUE)
+
+fourth <-
+glm(diagnosis ~ wave, filter(data_male, ntile == 4), family = binomial) %>%
+# broom::tidy(exponentiate = TRUE, conf.int = TRUE) %>%
+# mutate(across(where(is.numeric), round, digits = 2))
+tbl_regression(., exponentiate = TRUE)
+
+firth <-
+glm(diagnosis ~ wave, filter(data_male, ntile == 5), family = binomial) %>%
+# broom::tidy(exponentiate = TRUE, conf.int = TRUE) %>%
+# mutate(across(where(is.numeric), round, digits = 2))
+tbl_regression(., exponentiate = TRUE)
+
+tbl_merge(
+  tbls = list(first, second, third, fourth, firth),
+  tab_spanner = c("**1st**", "**2nd**", "**3rd**", "**4th**", "**5th**")) %>%
+as_flex_table() %>%
+flextable::save_as_docx(fileext = ".docx", path = "male_quintile_OR.docx")
