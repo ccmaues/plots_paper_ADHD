@@ -115,11 +115,8 @@ for_plot2 <-
 p_left <-
   for_plot2 %>%
   ggplot(aes(y = term)) +
-  geom_text(aes(x = 0, label = term), hjust = 0, fontface = "bold") +
-  # geom_text(
-  #   aes(x = 1, label = OR_CI),
-  #   hjust = 0,
-  #   fontface = ifelse(for_plot2$OR_CI == "Hazard Ratio (95% CI)", "bold", "plain")) +
+  geom_text(aes(x = 0, label = term), hjust = 0,
+  fontface = ifelse(for_plot2$term == "Variable", "bold", "plain")) +
     theme_void() +
     coord_cartesian(xlim = c(0, 4))
 
