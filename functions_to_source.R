@@ -124,5 +124,12 @@ uni_model_OR <- function(data) {
     method = glm,
     y = diagnosis,
     method.args = list(family = binomial),
-    exponentiate = TRUE)
+    exponentiate = TRUE) %>%
+    add_global_p() %>% # add global p-value
+    add_nevent() %>% # add number of events of the outcome
+    add_q() %>% # adjusts global p-values for multiple testing
+    bold_p() %>% # bold p-values under a given threshold (default 0.05)
+    bold_p(t = 0.10, q = TRUE) %>% # now bold q-values under the threshold of 0.10
+    bold_labels() %>%
+    italicize_levels()
 }
