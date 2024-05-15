@@ -62,10 +62,43 @@ W2_OR <- uni_model_OR(W2)
 ## Forest Plot
 for_plot <-
   all_time_plot %>%
-  edit() %>%
+  mutate(
+    term = c(
+      "Female", "Male", "(Intercept)", "PRS\nadjusted", "RS", "SP",
+      "(Intercept)", "Age", "(Intercept)", "PRS\noriginal",
+      "(Intercept)", "Parents'\ndiagnosis"
+  )) %>%
   filter(term != "(Intercept)")
 
-# saveRDS(for_plot, file = "cass_BHRC_forest_plot_uni.R")
+for_plot <-
+  W0_plot %>%
+  mutate(
+    term = c(
+      "Female", "Male", "(Intercept)", "PRS\nadjusted", "RS", "SP",
+      "(Intercept)", "Age", "(Intercept)", "PRS\noriginal",
+      "(Intercept)", "Parents'\ndiagnosis"
+  )) %>%
+  filter(term != "(Intercept)")
+
+for_plot <-
+  W1_plot %>%
+  mutate(
+    term = c(
+      "Female", "Male", "(Intercept)", "PRS\nadjusted", "RS", "SP",
+      "(Intercept)", "Age", "(Intercept)", "PRS\noriginal",
+      "(Intercept)", "Parents'\ndiagnosis"
+  )) %>%
+  filter(term != "(Intercept)")
+
+for_plot <-
+  W2_plot %>%
+  mutate(
+    term = c(
+      "Female", "Male", "(Intercept)", "PRS\nadjusted", "RS", "SP",
+      "(Intercept)", "Age", "(Intercept)", "PRS\noriginal",
+      "(Intercept)", "Parents'\ndiagnosis"
+  )) %>%
+  filter(term != "(Intercept)")
 
 p_mid <-
   for_plot %>%
@@ -74,7 +107,7 @@ p_mid <-
   geom_vline(xintercept = 1, linetype = "dashed") +
   geom_point(aes(x = estimate, color = factor(estimate > 1)), shape = 15, size = 3) +
   labs(x = "Odds Ratio", y = "") +
-  coord_cartesian(ylim = c(1, 12), xlim = c(0, 3.5)) +
+  coord_cartesian(ylim = c(1, 9), xlim = c(0, 3.5)) +
   scale_color_manual(values = c("#7a0000", "#01942d")) +
   theme(
     axis.line.x = element_line(linewidth = 0.5, color = "black"),
@@ -137,7 +170,7 @@ layout <- c(
 p_left + p_mid + p_right + plot_layout(design = layout)
 
 ggsave(
-  "forest_plot_uni.png", device = "png",
+  "forest_plot_uni_W2.png", device = "png",
   units = "mm", height = 200, width = 110
 )
 
