@@ -1,8 +1,12 @@
 #setwd("C:/Users/cassi/OneDrive/Área de Trabalho/github_files/plots_paper/")
-source("data_to_source.R")
-source("functions_to_source.R")
+source("plots_paper/data_to_source.R")
+source("plots_paper/functions_to_source.R")
 
 
+glm(
+  age ~ adjusted_PRS + diagnosis,
+  data, family = gaussian) %>%
+tbl_regression(exponenciate = TRUE)
 # summary(fit.ex4.1)$adj.r.squared
 
 ## For all observations (no time var)
