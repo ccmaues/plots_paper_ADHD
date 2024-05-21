@@ -2,20 +2,11 @@
 source("plots_paper/data_to_source.R")
 source("plots_paper/functions_to_source.R")
 
-
 glm(
   age ~ adjusted_PRS + diagnosis,
   data, family = gaussian) %>%
 tbl_regression(exponenciate = TRUE)
 # summary(fit.ex4.1)$adj.r.squared
-
-## For all observations (no time var)
-# I argue that because all samples appear 3 times,
-# it won't be an issue ni the GLM, cuz its almost
-# controled...? I mean, in ALL samples.
-all_time <-
-  data %>%
-  select(-IID)
 
 ## For time comparison
 W0 <-
@@ -37,8 +28,6 @@ W2 <-
   select(-IID)
 
 ## Get Odds Ratio into a table
-all_time_OR <- uni_model_OR(all_time)
-
 W0_OR <- uni_model_OR(W0)
 W1_OR <- uni_model_OR(W1)
 W2_OR <- uni_model_OR(W2)

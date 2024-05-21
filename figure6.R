@@ -1,4 +1,5 @@
 source("functions_to_source.R")
+source("data_to_source.R")
 
 ## quintile composition plots
 
@@ -10,11 +11,11 @@ vADHD <-
   mutate(
     quintile = as.factor(ntile(PRS, 5)),
     quintile = case_when(
-      quintile == 1 ~ "1st",
-      quintile == 2 ~ "2nd",
-      quintile == 3 ~ "3rd",
-      quintile == 4 ~ "4th",
-      quintile == 5 ~ "5th",
+      quintile == 1 ~ "1ª",
+      quintile == 2 ~ "2ª",
+      quintile == 3 ~ "3ª",
+      quintile == 4 ~ "4ª",
+      quintile == 5 ~ "5ª",
     )) %>%
   select(-PRS)
 
@@ -33,12 +34,13 @@ data <-
   mutate(
     popID = as.factor(case_when(
     popID == "BRA_SP" ~ "SP",
-    popID == "BRA_RS" ~ "RS")))
+    popID == "BRA_RS" ~ "RS"))) %>%
+  rename(Estado = popID)
 
 data$quintile <-
   factor(
     data$quintile,
-    levels = c("1st", "2nd", "3rd", "4th", "5th"))
+    levels = c("1º", "2º", "3º", "4º", "5º"))
 
 # aqui posso testar se há diferença significativa
 # entre essa variáves em cada quintil para
@@ -77,7 +79,7 @@ ancesPercentage <-
 # swatch()
 
 p1 <-
-  ggplot(stateCount, aes(quintile, percentage, fill = popID)) +
+  ggplot(stateCount, aes(quintile, percentage, fill = Estado)) +
   geom_col(position = "stack") +
   scale_fill_manual(values = c("#073642bd", "#db735cd5")) +
   theme_publish() +
