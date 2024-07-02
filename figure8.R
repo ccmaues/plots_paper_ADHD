@@ -28,7 +28,6 @@ mirrow <-
   select(ident, IID) %>%
   mutate(ident = as.numeric(ident))
 
-
 # data is so broken that looks like my head
 # need to remove NAs
 dates <-
@@ -52,48 +51,14 @@ dates %>%
   ungroup()
 
 dates$d_date <- as.Date(dates$d_date)
-start_date <- min(dates$d_date)
-dates$time <- as.numeric(dates$d_date - start_date)
-
-
-# follow up time
-# pivor_wider by wave
-
-
-library(survival)
-fit <- survfit(Surv(time = dates$time, event = dates$dcanyhk == 2) ~ sex, data = dates)
-
-survminer::ggsurvplot(
-   fit, 
-   data = dates,          # again specify the data used to fit linelistsurv_fit_sex 
-   conf.int = TRUE,              # do not show confidence interval of KM estimates
-   surv.scale = "percent",        # present probabilities in the y axis in %
-   break.time.by = 360,            # present the time axis with an increment of 30 days
-   xlab = "Follow-up days",
-   ylab = "Survival Probability",
-   pval = TRUE,                   # print p-value of Log-rank test 
-   pval.coord = c(40, .91),       # print p-value at these plot coordinates
-   risk.table = TRUE,             # print the risk table at bottom 
-   legend.title = "Gender",       # legend characteristics
-   legend.labs = c("Female", "Male"),
-   font.legend = 10,
-   palette = "Dark2",             # specify color palette 
-   surv.median.line = "hv",       # draw horizontal and vertical lines to the median survivals
-   ggtheme = theme_publish()        # simplify plot background
-)
-
-# method 2
-dates$d_date <- as.Date(dates$d_date)
-dates$IID <- as.character(dates$IID)
-
 # Aggregating data
-dates_agg <- dates %>%
+dates_agg <-
+  dates %>%
   group_by(IID) %>%
   summarise(
     d_date = ifelse(any(dcanyhk == 2), min(d_date[dcanyhk == 2], na.rm = TRUE), max(d_date, na.rm = TRUE)),
     dcanyhk = ifelse(any(dcanyhk == 2), 2, 0),
-    sex = first(sex)
-  ) %>%
+    sex = first(sex)) %>%
   ungroup()
 
 # Calculate time in days from the earliest date
@@ -106,21 +71,51 @@ fit <- survfit(surv_object ~ sex, data = dates_agg)
 
 # Plot the survival curve
 survminer::ggsurvplot(
-   fit, 
-   data = dates_agg,           
-   conf.int = TRUE,            
-   surv.scale = "percent",     
-   break.time.by = 360,         
-   xlab = "Follow-up days",
-   ylab = "Cumulative Probability of Diagnosis",
-   pval = TRUE,                
-   pval.coord = c(300, .91),   
-   risk.table = TRUE,          
-   legend.title = "Gender",    
-   legend.labs = c("Female", "Male"),
-   font.legend = 10, 
-   palette = "Dark2",          
-   surv.median.line = "hv",    
-   ggtheme = theme_light(),
-   fun = "event"
-)
+  fit, data = dates_agg, conf.int = TRUE, surv.scale = "percent",
+  xlab = "Follow-up years",
+  ylab = "Cumulative Probability of Diagnosis",
+  pval = TRUE, pval.coord = c(300, .91),
+  risk.table = TRUE, xscale = 365.25, legend.title = "Gender",
+  legend.labs = c("Female", "Male"), font.legend = 10,
+  palette = "Dark2", surv.median.line = "hv",
+  ggtheme = theme_light(), fun = "event"
+  )
+
+# Method 2: for ages instead of sex
+library(forcats)
+model2 <-
+  ages %>%
+  mutate(
+    across(c(age_W0, age_W1, age_W2), round),
+    across(c(age_W0, age_W1, age_W2), factor)) %>%
+  pivot_longer(
+    cols = c(age_W0, age_W1, age_W2),
+    names_to = "wave",
+    values_to = "age") %>%
+  mutate(
+    wave = case_when(
+      wave == "age_W0" ~ "W0",
+      wave == "age_W1" ~ "W1",
+      wave == "age_W2" ~ "W2")) %>%
+  inner_join(., dates, by = c("IID", "wave")) %>%
+  group_by(IID) %>%
+  summarise(
+    d_date = ifelse(any(dcanyhk == 2), min(d_date[dcanyhk == 2], na.rm = TRUE), max(d_date, na.rm = TRUE)),
+    dcanyhk = ifelse(any(dcanyhk == 2), 2, 0),
+    age = first(age)) %>%
+  ungroup()
+
+# Create the Surv object and fit the survival curve
+surv_object <- Surv(time = model2$d_date, event = model2$dcanyhk == 2)
+fit <- survfit(surv_object ~ age, data = model2)
+
+survminer::ggsurvplot(
+  fit, data = model2, conf.int = TRUE, surv.scale = "percent",
+  xlab = "Follow-up years",
+  ylab = "Cumulative Probability of Diagnosis",
+  pval = TRUE, pval.coord = c(300, .91),
+  risk.table = TRUE, xscale = 365.25, legend.title = "Age",
+  legend.labs = c(6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23),
+  font.legend = 10,
+  palette = rainbow(23), surv.median.line = "hv",
+  ggtheme = theme_light(), fun = "event")
