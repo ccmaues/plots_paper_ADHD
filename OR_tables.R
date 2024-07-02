@@ -2,10 +2,10 @@
 source("plots_paper/data_to_source.R")
 source("plots_paper/functions_to_source.R")
 
-
+# gotta separate into groups
 glm(
-  age ~ adjusted_PRS + diagnosis,
-  data, family = gaussian) %>%
+  age ~ adjusted_PRS + diagnosis + sex,
+  data, family = gaussian) %>% # não é normal a idade
 tbl_regression(exponenciate = TRUE)
 # summary(fit.ex4.1)$adj.r.squared
 
