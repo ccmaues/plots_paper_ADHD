@@ -5,8 +5,8 @@ source("functions_to_source.R")
 
 # The statistic we will use to diagnose collinearity is the variance inflation factor (VIF)
 # https://www.bookdown.org/rwnahhas/RMPH/mlr-collinearity.html#mlr-collinearity
-# we DO NOT want the colinearity or near that. It is an issue
-# to the model
+# we DO NOT want the colinearity or near that.
+# It is an issue to the model
 # If two predictors are perfectly collinear, then they
 # are completely redundant for the purposes of linear regression
 # https://www.bookdown.org/rwnahhas/RMPH/mlr-linearity.html
@@ -14,7 +14,7 @@ source("functions_to_source.R")
 # dummy variables don't need that. They are used in the model in
 # a different way
 
-# Variance Inflation Factor (VIF) measures the severity of multicollinearity 
+# Variance Inflation Factor (VIF) measures the severity of multicollinearity
 car::vif(
   glm(diagnosis ~ adjusted_PRS + age:sex + p_diagnosis + popID,
   filter(data, wave == "W0"),

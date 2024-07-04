@@ -13,7 +13,7 @@ vADHD <-
     quintile == 2 ~ "2nd",
     quintile == 3 ~ "3rd",
     quintile == 4 ~ "4th",
-    quintile == 5 ~ "5th",)) %>%
+    quintile == 5 ~ "5th")) %>%
   select(-PRS)
 
 # Phenotype for N adjustment
