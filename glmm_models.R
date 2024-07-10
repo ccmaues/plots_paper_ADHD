@@ -30,25 +30,20 @@ data %>%
 
 # extreme outiliers verification
 data %>%
-  pivot_wider(
-    names_from = wave,
-    values_from = age) %>%
-    select(starts_with("W")) %>%
-  identify_outliers(W0)
+  filter(wave == "W0") %>%
+  select(age) %>%
+  identify_outliers(age)
+#knitr::kable()
 
 data %>%
-  pivot_wider(
-    names_from = wave,
-    values_from = age) %>%
-    select(starts_with("W")) %>%
-  identify_outliers(W1)
+  filter(wave == "W1") %>%
+  select(age) %>%
+  identify_outliers(age)
 
 data %>%
-  pivot_wider(
-    names_from = wave,
-    values_from = age) %>%
-    select(starts_with("W")) %>%
-  identify_outliers(W2)
+  filter(wave == "W2") %>%
+  select(age) %>%
+  identify_outliers(age)
 
 # QQ Plot
 ggthemr("fresh")
@@ -65,6 +60,18 @@ p2 <-
   data %>%
   ggplot(aes(age, color = wave)) +
     geom_density(alpha = 0.8, linewidth = 2)
+
+# cumulative
+p3 <-
+  data %>%
+  ggplot(aes(age, color = wave)) +
+  stat_ecdf(geom = "step") +
+  theme_publish()
+
+# ECDF plot (or Empirical Cumulative Density Function)
+# https://en.wikipedia.org/wiki/Normal_distribution
+# https://en.wikipedia.org/wiki/Gamma_distribution
+# https://en.wikipedia.org/wiki/Inverse_Gaussian_distribution
 
 ##### new scale
 # transform the data and
@@ -137,7 +144,7 @@ library(patchwork)
 
 ###### run the model
 # Install and load required packages
-install.packages("lme4")
+# install.packages("lme4")
 library(lme4)
 
 # Fit the GLMM with Gamma family and log link
@@ -162,3 +169,6 @@ shapiro.test(residuals(model))
 # Homoscedasticity: Plot residuals against fitted values
 plot(residuals(model) ~ fitted(model))
 
+# https://stats.stackexchange.com/questions/190763/how-to-decide-which-glm-family-to-use
+# they say in here that is good to test some
+# different models and see thei aplicabillity
