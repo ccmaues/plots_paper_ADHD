@@ -33,7 +33,7 @@ data %>%
   filter(wave == "W0") %>%
   select(age) %>%
   identify_outliers(age)
-#knitr::kable()
+knitr::kable()
 
 data %>%
   filter(wave == "W1") %>%

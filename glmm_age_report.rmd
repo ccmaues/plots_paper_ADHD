@@ -1,0 +1,90 @@
+---
+title: "ARTICLE NAME HERE"
+date: "`r Sys.Date()`"
+author: "Cassia M Cuoco"
+output:
+  rmdformats::readthedown:
+    self_contained: TRUE
+    thumbnails: TRUE
+    lightbox: TRUE
+    gallery: FALSE
+    highlight: tango
+include:
+  in_header: styles.css
+  before_body: scripts.js
+---
+
+```{r, include = FALSE}
+source("data_to_source.R")
+source("functions_to_source.R")
+library(rstatix)
+ggthemr("fresh")
+```
+
+## Age variable
+### Used data
+```{r, data_summary1, echo = TRUE}
+head(data)
+```
+### Age summary by wave
+```{r, data_summary2, echo = TRUE}
+data %>%
+  group_by(wave) %>%
+  get_summary_stats(age, type = "common")
+```
+### Normality test
+```{r, shapiro_test, echo = TRUE}
+data %>%
+  pivot_wider(
+    names_from = wave,
+    values_from = age) %>%
+  select(starts_with("W")) %>%
+  shapiro_test(W0, W1, W2)
+
+data %>%
+  pivot_wider(
+    names_from = wave,
+    values_from = age) %>%
+  select(starts_with("W")) %>%
+  mshapiro_test()
+```
+### Outlier detect
+```{r, outlier_detect, echo = TRUE}
+data %>%
+  filter(wave == "W0") %>%
+  select(age) %>%
+  identify_outliers(age)
+
+data %>%
+  filter(wave == "W1") %>%
+  select(age) %>%
+  identify_outliers(age)
+
+data %>%
+  filter(wave == "W2") %>%
+  select(age) %>%
+  identify_outliers(age)
+```
+### Distribution plots
+```{r, distribution_plots, echo = TRUE, error = FALSE}
+data %>%
+  ggplot(aes(sample = age, color = wave)) +
+    geom_qq(size = 3, alpha = 0.8) +
+    geom_qq_line(linewidth = 2, alpha = 0.6, linetype = "dashed") +
+    labs(title = "original age distribution") +
+    theme_publish()
+data %>%
+  ggplot(aes(age, color = wave)) +
+    geom_density(alpha = 0.8, linewidth = 2)
+data %>%
+  ggplot(aes(age, color = wave)) +
+  stat_ecdf(geom = "step", linewidth = 2) +
+  theme_publish()
+```
+<--- put notes here --->
+```{r, echo = TRUE}
+```
+## Generalized Linear Mixed Models (GLMM)
+
+* Reasons to use this method with out data
+

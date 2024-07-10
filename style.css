@@ -1,0 +1,10 @@
+.code-hide button {
+  background: #eee;
+  border: none;
+  padding: 5px;
+  cursor: pointer;
+}
+
+.code-hide .code {
+  display: none;
+}
