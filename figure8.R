@@ -1,121 +1,192 @@
-source("functions_to_source.R")
+setwd("C:/Users/cassi/OneDrive/Área de Trabalho/github_files/plots_paper/")
 source("data_to_source.R")
+source("functions_to_source.R")
 
-# used tutorials:
-## https://rviews.rstudio.com/2017/09/25/survival-analysis-with-r/
-## https://www.emilyzabor.com/tutorials/survival_analysis_in_r_tutorial.html
-## http://www.sthda.com/english/wiki/survival-analysis-basics
+###### distribution determination
+# Verify the outcome distribution
+# (don't know if i have to test one
+# per time of all at once)
+library(rstatix)
 
-# need data of evaluation
-# phenotype by wave
-# want age (x-axis)
-# and sex (grouping)
+# variable summary
+data %>%
+  group_by(wave) %>%
+  get_summary_stats(age, type = "common")
 
-# for the time part, I need to let it be in one
-# scale. I am thinking of putting in days, just
-# like the tutorials.
+# normality test
+data %>%
+  pivot_wider(
+    names_from = wave,
+    values_from = age) %>%
+  select(starts_with("W")) %>%
+  shapiro_test(W0, W1, W2)
 
-# phenotype codes must be 0 and 1s
-# censored = control
+data %>%
+  pivot_wider(
+    names_from = wave,
+    values_from = age) %>%
+  select(starts_with("W")) %>%
+  mshapiro_test()
 
-# https://epirhandbook.com/en/working-with-dates.html
-# Working with the dates:
-# fazer com as datas de nascimento ou só com o tempo da coorte?
-library(lubridate)
+# extreme outiliers verification
+data %>%
+  filter(wave == "W0") %>%
+  select(age) %>%
+  identify_outliers(age) %>%
+  knitr::kable()
 
-mirrow <-
-  readRDS(glue("{Path}/0_external_files/Lucas_Keep2190_BHRCS.rds")) %>%
-  select(ident, IID) %>%
-  mutate(ident = as.numeric(ident))
+data %>%
+  filter(wave == "W1") %>%
+  select(age) %>%
+  identify_outliers(age) %>%
+  knitr::kable()
 
-# data is so broken that looks like my head
-# need to remove NAs
-dates <-
-  readRDS(glue("{Path}/0_external_files/dates.rds")) %>%
-  select(ident, redcap_event_name, d_date) %>%
-  mutate(
-    redcap_event_name = case_when(
-      redcap_event_name == "wave0_arm_1" ~ "W0",
-      redcap_event_name == "wave1_arm_1" ~ "W1",
-      redcap_event_name == "wave2_arm_1" ~ "W2")) %>%
-  rename(wave = redcap_event_name) %>%
-  inner_join(mirrow, ., by = "ident") %>%
-  inner_join(., pheno[, c("IID", "dcanyhk", "wave")], by = c("IID", "wave")) %>%
-  inner_join(., sex, by = "IID") %>%
-  select(-ident) %>%
-  drop_na()
+data %>%
+  filter(wave == "W2") %>%
+  select(age) %>%
+  identify_outliers(age) %>%
+  knitr::kable()
 
-dates %>%
-  group_by(IID) %>%
-  slice(which.min(d_date)) %>%
-  ungroup()
+# QQ Plot
+ggthemr("fresh")
+p1 <-
+  data %>%
+  ggplot(aes(sample = age, color = wave)) +
+    geom_qq(size = 1, alpha = 0.8) +
+    geom_qq_line(linewidth = 0.5, alpha = 0.6, linetype = "dashed") +
+    theme_publish() +
+    labs(
+      y = "Expected observations",
+      x = "Observations") +
+    theme(
+      legend.position = "none",
+      axis.title = element_text(size = 10),
+      text = element_text(family = "Arial", color = "black"),
+      axis.line.x = element_line(linewidth = 0.5, color = "black"),
+      axis.ticks.x = element_line(linewidth = 0.5, color = "black"),
+      axis.text.x = element_text(size = 10),
+      axis.line.y = element_line(linewidth = 0.5, color = "black"),
+      axis.ticks.y = element_line(linewidth = 0.5, color = "black"),
+      axis.text.y = element_text(size = 10))
 
-dates$d_date <- as.Date(dates$d_date)
-# Aggregating data
-dates_agg <-
-  dates %>%
-  group_by(IID) %>%
-  summarise(
-    d_date = ifelse(any(dcanyhk == 2), min(d_date[dcanyhk == 2], na.rm = TRUE), max(d_date, na.rm = TRUE)),
-    dcanyhk = ifelse(any(dcanyhk == 2), 2, 0),
-    sex = first(sex)) %>%
-  ungroup()
+# histogram
+p2 <-
+  data %>%
+  ggplot(aes(age, color = wave)) +
+    geom_histogram(
+      linewidth = 1,
+      fill = "#ffffff00") +
+    theme_publish() +
+    facet_grid(~wave) +
+    labs(
+    y = "Frequency",
+    x = "Age (yr)") +
+    theme(
+      panel.spacing = unit(0.5, "lines"),
+      strip.text.x = element_blank(),
+      legend.position = "right",
+      axis.title = element_text(size = 10),
+      text = element_text(family = "Arial", color = "black"),
+      axis.line.x = element_line(linewidth = 0.5, color = "black"),
+      axis.ticks.x = element_line(linewidth = 0.5, color = "black"),
+      axis.text.x = element_text(size = 10),
+      axis.line.y = element_line(linewidth = 0.5, color = "black"),
+      axis.ticks.y = element_line(linewidth = 0.5, color = "black"),
+      axis.text.y = element_text(size = 10))
 
-# Calculate time in days from the earliest date
-start_date <- min(dates_agg$d_date)
-dates_agg$time <- as.numeric(dates_agg$d_date - start_date)
+# cumulative
+p3 <-
+  data %>%
+  ggplot(aes(age, color = wave)) +
+  stat_ecdf(geom = "step", linewidth = 1) +
+  theme_publish() +
+  labs(
+    y = "Cumulative Empirical\nDistribution",
+    x = "Age (yr)") +
+  theme(
+    legend.position = "none",
+    axis.title = element_text(size = 10),
+    text = element_text(family = "Arial", color = "black"),
+    axis.line.x = element_line(linewidth = 0.5, color = "black"),
+    axis.ticks.x = element_line(linewidth = 0.5, color = "black"),
+    axis.text.x = element_text(size = 10),
+    axis.line.y = element_line(linewidth = 0.5, color = "black"),
+    axis.ticks.y = element_line(linewidth = 0.5, color = "black"),
+    axis.text.y = element_text(size = 10))
 
-# Create the Surv object and fit the survival curve
-surv_object <- Surv(time = dates_agg$time, event = dates_agg$dcanyhk == 2)
-fit <- survfit(surv_object ~ sex, data = dates_agg)
+library(patchwork)
+teste <- p1 / p2 / p3
+print(teste)
+ggsave(
+  "Figure8.png", width = 85, height = 150, units = "mm",
+  bg = "transparent", scale = c(2, 1.5))
 
-# Plot the survival curve
-survminer::ggsurvplot(
-  fit, data = dates_agg, conf.int = TRUE, surv.scale = "percent",
-  xlab = "Follow-up years",
-  ylab = "Cumulative Probability of Diagnosis",
-  pval = TRUE, pval.coord = c(300, .91),
-  risk.table = TRUE, xscale = 365.25, legend.title = "Gender",
-  legend.labs = c("Female", "Male"), font.legend = 10,
-  palette = "Dark2", surv.median.line = "hv",
-  ggtheme = theme_light(), fun = "event"
-  )
+# ECDF plot (or Empirical Cumulative Density Function)
+# https://en.wikipedia.org/wiki/Normal_distribution
+# https://en.wikipedia.org/wiki/Gamma_distribution
+# https://en.wikipedia.org/wiki/Inverse_Gaussian_distribution
 
-# Method 2: for ages instead of sex
-library(forcats)
-model2 <-
-  ages %>%
-  mutate(
-    across(c(age_W0, age_W1, age_W2), round),
-    across(c(age_W0, age_W1, age_W2), factor)) %>%
-  pivot_longer(
-    cols = c(age_W0, age_W1, age_W2),
-    names_to = "wave",
-    values_to = "age") %>%
-  mutate(
-    wave = case_when(
-      wave == "age_W0" ~ "W0",
-      wave == "age_W1" ~ "W1",
-      wave == "age_W2" ~ "W2")) %>%
-  inner_join(., dates, by = c("IID", "wave")) %>%
-  group_by(IID) %>%
-  summarise(
-    d_date = ifelse(any(dcanyhk == 2), min(d_date[dcanyhk == 2], na.rm = TRUE), max(d_date, na.rm = TRUE)),
-    dcanyhk = ifelse(any(dcanyhk == 2), 2, 0),
-    age = first(age)) %>%
-  ungroup()
+##### new scale
+# transform the data and
+# see if the distribution changes
+# otherwise use GLMM
 
-# Create the Surv object and fit the survival curve
-surv_object <- Surv(time = model2$d_date, event = model2$dcanyhk == 2)
-fit <- survfit(surv_object ~ age, data = model2)
+# variable summary
+new_scale <-
+  data %>%
+  mutate(age = as.numeric(scale(age)))
 
-survminer::ggsurvplot(
-  fit, data = model2, conf.int = TRUE, surv.scale = "percent",
-  xlab = "Follow-up years",
-  ylab = "Cumulative Probability of Diagnosis",
-  pval = TRUE, pval.coord = c(300, .91),
-  risk.table = TRUE, xscale = 365.25, legend.title = "Age",
-  legend.labs = c(6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23),
-  font.legend = 10,
-  palette = rainbow(23), surv.median.line = "hv",
-  ggtheme = theme_light(), fun = "event")
+new_scale %>%
+  group_by(wave) %>%
+  get_summary_stats(age, type = "common")
+
+# normality test
+new_scale %>%
+  pivot_wider(
+    names_from = wave,
+    values_from = age) %>%
+  select(starts_with("W")) %>%
+  shapiro_test(W0, W1, W2)
+
+new_scale %>%
+  pivot_wider(
+    names_from = wave,
+    values_from = age) %>%
+  select(starts_with("W")) %>%
+  mshapiro_test()
+
+# extreme outiliers verification
+new_scale %>%
+  filter(wave == "W0") %>%
+  select(age) %>%
+  identify_outliers(age) %>%
+  knitr::kable()
+
+new_scale %>%
+  filter(wave == "W1") %>%
+  select(age) %>%
+  identify_outliers(age) %>%
+  knitr::kable()
+
+new_scale %>%
+  filter(wave == "W2") %>%
+  select(age) %>%
+  identify_outliers(age) %>%
+  knitr::kable()
+
+# QQ Plot
+p4 <-
+  new_scale %>%
+  ggplot(aes(sample = age, color = wave)) +
+    geom_qq(size = 5, alpha = 0.8) +
+    geom_qq_line(linewidth = 2, alpha = 0.6, linetype = "dashed") +
+    labs(title = "transformed age distribution") +
+    theme_publish()
+
+# histogram
+p5 <-
+  new_scale %>%
+  ggplot(aes(age, color = wave)) +
+    geom_density(alpha = 0.8, linewidth = 2)
+
+(p1 + p2) / (p3 + p4)
