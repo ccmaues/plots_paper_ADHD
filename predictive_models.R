@@ -1,3 +1,6 @@
+setwd("C:/Users/cassi/OneDrive/Área de Trabalho/github_files/plots_paper/")
+source("data_to_source.R")
+source("functions_to_source.R")
 ###### run the model
 # Install and load required packages
 # install.packages("lme4")
@@ -7,14 +10,26 @@
 # https://stats.stackexchange.com/questions/16390/when-to-use-generalized-estimating-equations-vs-mixed-effects-models
 library(lme4)
 
+# se os residuos não estão normalmente distribuídos,
+# o que faço? Mudo a função de ligação? O meud dado de
+# outcome não é normal (mesmo depois de mudar pro zscore)
+# eu quero saber em qual idade, levando em consideração
+# o quintil de PRS, sexo e diagnóstico, a pessoa provavelmente
+# será diagnósticada. Inicialmente farei SEM separação por quintil
+# só pra aprender direito
+# só os que tiveram uma prevalência mt grande ou estranha
+
 # Fit the GLMM with Gamma family and log link
-model <- glmer(age ~ adjusted_PRS + sex:diagnosis + (1 | IID), family = Gamma(link = "log"), data = data)
+model <-
+glmer(age ~ adjusted_PRS + sex*diagnosis + (1 | IID),
+     family = Gamma(link = "log"),
+     data = data
+     )
 
 # Summary of the model
 summary(model)
 
 # Model assumption testing
-
 # Linearity: Residuals vs Fitted plot
 plot(model, which = 1)
 
