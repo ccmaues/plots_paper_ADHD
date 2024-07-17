@@ -1,42 +1,140 @@
 setwd("C:/Users/cassi/OneDrive/Área de Trabalho/github_files/plots_paper/")
 source("data_to_source.R")
 source("functions_to_source.R")
+
+### Calculate the weights for my data
+# get all IIDs, make new var to mark which one
+# stays in my analysis
+dawba <-
+  readRDS(glue("{Path}/0_external_files/dawba_20200526.rds")) %>%
+  mutate(subjectid = gsub("^", "C", subjectid)) %>%
+  select(subjectid) %>%
+  rename(IID = 1)
+
+all_IDs <- unique(dawba$IID)
+
+# Load IIDs 'translator'
+espelho <-
+  readRDS(glue("{Path}/0_external_files/Lucas_MINI_BHRCS.rds")) %>%
+  select(1, 4) %>%
+  mutate(ident = as.numeric(ident))
+
+# Ages
+ages_og <-
+  readRDS(glue("{Path}/0_external_files/Ota_149BHRC_2023_01_15.rds")) %>%
+  select(1, 2, 3) %>%
+  filter(redcap_event_name == "wave0_arm_1") %>%
+  select(-2) %>%
+  inner_join(., espelho, by = "ident")
+
+# Combine data for weight estimation
+check <-
+  c(all_IDs, unique(data$IID)) %>%
+  table() %>%
+  as.data.frame() %>%
+  filter(Freq == 2) %>%
+  rename(IID = 1, new_weight = 2) %>%
+  left_join(data.frame(IID = unique(dawba$IID)), ., by = "IID") %>%
+  mutate(
+    new_weight = case_when(
+      new_weight == 2 ~ 1,
+      TRUE ~ 0)) %>%
+  inner_join(., ages_og, by = "IID") %>%
+  select(-ident) %>%
+  mutate(age =
+    as.numeric(
+      difftime(as.Date("2010-01-01"),
+      birth_date_original,
+      units = "days")) / 365.25)
+
+# Logit regression to generate probability of attrition
+w_fit <-
+  glm(
+    new_weight ~ age,
+    family = binomial(link = 'logit'),
+    data = check
+    )
+
+summary(w_fit)
+
+# Predict
+p_weights <-
+  predict(
+    w_fit,
+    type = "response"
+  )
+
+# Invert prediction
+inverted_p_weights <- 1 / p_weights
+
+# Add weights to IIDs
+new_weights <-
+  cbind(check$IID, inverted_p_weights) %>%
+  as.data.frame() %>%
+  rename(IID = 1, weights = 2) %>%
+  filter(IID %in% data$IID) %>%
+  mutate(weights = as.numeric(weights))
+
+
+### testing
+# ~~~~~~ issue
+sum(inverted_p_weights) # sum must be around 2511
+
+mydata_w1_attr <-
+  new_weights %>%
+  filter(weights == 1)
+
+sum(mydata_w1_attr) # maximum value should not be higher than 4. If so, suggest to trimm for the 99 or 95th percentile.
+summary(mydata_w1_attr)
+
+###### Make pair plots
+# The variables have correlation between them?
+pacman::p_load(GGally)
+ggthemr("fresh")
+data %>%
+  select(age, adjusted_PRS, sex, popID) %>%
+  ggpairs() +
+  theme_publish()
+
 ###### run the model
 # Install and load required packages
-# install.packages("lme4")
-# why not use GLMM instead of GEE
-# GEE is for population estimation
-# GLMM is for the individual estimation
-# https://stats.stackexchange.com/questions/16390/when-to-use-generalized-estimating-equations-vs-mixed-effects-models
-library(lme4)
+# GLMM calculates the population effect and individual effect
+pacman::p_load("lme4")
 
-# se os residuos não estão normalmente distribuídos,
-# o que faço? Mudo a função de ligação? O meud dado de
-# outcome não é normal (mesmo depois de mudar pro zscore)
-# eu quero saber em qual idade, levando em consideração
-# o quintil de PRS, sexo e diagnóstico, a pessoa provavelmente
-# será diagnósticada. Inicialmente farei SEM separação por quintil
-# só pra aprender direito
-# só os que tiveram uma prevalência mt grande ou estranha
+# Inicialmente farei SEM separação por quintil
+# fazer só com casos
+final_data <- inner_join(data, new_weights, by = "IID")
 
 # Fit the GLMM with Gamma family and log link
-model <-
-glmer(age ~ adjusted_PRS + sex*diagnosis + (1 | IID),
-     family = Gamma(link = "log"),
-     data = data
-     )
+
+m1 <-
+  glmer(
+    age ~ adjusted_PRS + sex * diagnosis + (1 | IID), # formula
+    data = final_data,  # data
+    family = poisson(link = "log") # link function
+  )
+
+# m4 <-
+#   glmer(
+#     age ~ adjusted_PRS + sex * diagnosis + (1 | IID), # formula
+#     weights = final_data$weights, # weights for calculating
+#     data = final_data,  # data
+#     family = inverse.gaussian(link = "1/mu^2"), # link function
+#     control = glmerControl(optimizer = "bobyqa"), # control for overfitting
+#     nAGQ = 10 # number of quadrature points
+#   )
 
 # Summary of the model
-summary(model)
+summary(m1)
 
 # Model assumption testing
 # Linearity: Residuals vs Fitted plot
 plot(model, which = 1)
 
 # Normality of Residuals: Q-Q plot and Shapiro-Wilk test
-qqnorm(residuals(model))
-qqline(residuals(model))
-shapiro.test(residuals(model))
+qqnorm(residuals(m3))
+qqline(residuals(m3))
+shapiro.test(residuals(m2))
 
 # Homoscedasticity: Plot residuals against fitted values
 plot(residuals(model) ~ fitted(model))
@@ -76,6 +174,8 @@ abline(h = 0, col = "red")
 library(car)
 crPlots(model)
 
-# https://stats.stackexchange.com/questions/190763/how-to-decide-which-glm-family-to-use
-# they say in here that is good to test some
-# different models and see thei aplicabillity
+plot_model(modelo_PRScs_2, type = "pred", terms = c("PGS","deprivation", "gender1"))
+plot_summs(modelo_PRScs_2, scale = TRUE, exp = TRUE)
+summary(modelo_PRScs_1)
+plot_model(modelo_PRScs_1, type = "pred", terms = c("PGS","Deprivation", "gender1"))
+(0 + factor(site))
