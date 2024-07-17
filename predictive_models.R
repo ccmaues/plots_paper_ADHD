@@ -103,7 +103,8 @@ pacman::p_load("lme4")
 
 # Inicialmente farei SEM separação por quintil
 # fazer só com casos
-final_data <- inner_join(data, new_weights, by = "IID")
+final_data <-
+  select(data, IID, age, adjusted_PRS, sex, diagnosis)
 
 # Fit the GLMM with Gamma family and log link
 pacman::p_load("doParallel")
