@@ -104,7 +104,9 @@ pacman::p_load("lme4")
 # Inicialmente farei SEM separação por quintil
 # fazer só com casos
 final_data <-
-  select(data, IID, age, adjusted_PRS, sex, diagnosis)
+  select(data, IID, age, adjusted_PRS, sex, diagnosis) %>%
+  mutate(age = as.integer(age)) %>%
+  head(n = 500L)
 
 # Fit the GLMM with Gamma family and log link
 pacman::p_load("doParallel")
@@ -114,6 +116,12 @@ cl <- makeCluster(detectCores() - 1) # leave one core free
 registerDoParallel(cl)
 
 # Fit the model
+m1 <- glmer(
+  age ~ adjusted_PRS + sex * diagnosis + (1 | IID), # formula
+  data = final_data,  # data
+  family = poisson(link = "log")
+)
+summary(m1)
 m1 <- glmer(
   age ~ adjusted_PRS + sex * diagnosis + (1 | IID), # formula
   data = final_data,  # data
@@ -138,12 +146,12 @@ summary(m1)
 
 # Model assumption testing
 # Linearity: Residuals vs Fitted plot
-plot(model, which = 1)
+plot(m1, which = 1)
 
 # Normality of Residuals: Q-Q plot and Shapiro-Wilk test
-qqnorm(residuals(m3))
-qqline(residuals(m3))
-shapiro.test(residuals(m2))
+qqnorm(residuals(m1))
+qqline(residuals(m1))
+shapiro.test(residuals(m1))
 
 # Homoscedasticity: Plot residuals against fitted values
 plot(residuals(model) ~ fitted(model))
