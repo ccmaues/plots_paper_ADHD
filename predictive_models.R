@@ -106,13 +106,21 @@ pacman::p_load("lme4")
 final_data <- inner_join(data, new_weights, by = "IID")
 
 # Fit the GLMM with Gamma family and log link
+pacman::p_load("doParallel")
 
-m1 <-
-  glmer(
-    age ~ adjusted_PRS + sex * diagnosis + (1 | IID), # formula
-    data = final_data,  # data
-    family = poisson(link = "log") # link function
-  )
+# Set up parallel backend
+cl <- makeCluster(detectCores() - 1) # leave one core free
+registerDoParallel(cl)
+
+# Fit the model
+m1 <- glmer(
+  age ~ adjusted_PRS + sex * diagnosis + (1 | IID), # formula
+  data = final_data,  # data
+  family = poisson(link = "log")
+)
+
+# Stop the cluster
+stopCluster(cl)
 
 # m4 <-
 #   glmer(
