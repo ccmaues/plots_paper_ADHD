@@ -51,9 +51,9 @@ check <-
 w_fit <-
   glm(
     new_weight ~ age,
-    family = binomial(link = 'logit'),
+    family = binomial(linNk = 'logit'),
     data = check
-    )
+  )
 
 summary(w_fit)
 
@@ -96,7 +96,7 @@ data %>%
   ggpairs() +
   theme_publish()
 
-###### run the model
+###### run the m1
 # Install and load required packages
 # GLMM calculates the population effect and individual effect
 pacman::p_load("lme4")
@@ -104,95 +104,89 @@ pacman::p_load("lme4")
 # Inicialmente farei SEM separação por quintil
 # fazer só com casos
 final_data <-
-  select(data, IID, age, adjusted_PRS, sex, diagnosis) %>%
-  mutate(age = as.integer(age)) %>%
-  head(n = 500L)
+  select(data, IID, age, adjusted_PRS, sex, diagnosis, wave) %>%
+  inner_join(., new_weights, by = "IID")
 
 # Fit the GLMM with Gamma family and log link
-pacman::p_load("doParallel")
-
 # Set up parallel backend
+pacman::p_load("doParallel")
 cl <- makeCluster(detectCores() - 1) # leave one core free
 registerDoParallel(cl)
 
-# Fit the model
-m1 <- glmer(
-  age ~ adjusted_PRS + sex * diagnosis + (1 | IID), # formula
+m3 <- glmer(
+  age ~ adjusted_PRS + sex * diagnosis + wave + (1 | IID), # formula
+  weights = final_data$weights,
   data = final_data,  # data
-  family = poisson(link = "log")
-)
-summary(m1)
-m1 <- glmer(
-  age ~ adjusted_PRS + sex * diagnosis + (1 | IID), # formula
-  data = final_data,  # data
-  family = poisson(link = "log")
+  family = gaussian(link = "log")
 )
 
 # Stop the cluster
 stopCluster(cl)
 
-# m4 <-
-#   glmer(
-#     age ~ adjusted_PRS + sex * diagnosis + (1 | IID), # formula
-#     weights = final_data$weights, # weights for calculating
-#     data = final_data,  # data
-#     family = inverse.gaussian(link = "1/mu^2"), # link function
-#     control = glmerControl(optimizer = "bobyqa"), # control for overfitting
-#     nAGQ = 10 # number of quadrature points
-#   )
+# Summary of the m1
+summary(m3)
 
-# Summary of the model
-summary(m1)
+### Residuals vs Fitted plot
+# Look for a random scatter without any pattern
+# Patterns could indicate non-linearity or other
+# m1 specification issues.
+plot(fitted(m3), residuals(m3),
+     xlab = "Fitted values", ylab = "Residuals",
+     main = "Residuals vs. Fitted")
+abline(h = 0, col = "red")  # Add a horizontal line at zero
 
-# Model assumption testing
-# Linearity: Residuals vs Fitted plot
-plot(m1, which = 1)
+### Normal Q-Q plot
+# Residuals should fall
+# along the 45-degree line.
+# Deviations suggest non-normality
+qqnorm(residuals(m3))
+qqline(residuals(m3), col = 2)
 
-# Normality of Residuals: Q-Q plot and Shapiro-Wilk test
-qqnorm(residuals(m1))
-qqline(residuals(m1))
-shapiro.test(residuals(m1))
-
-# Homoscedasticity: Plot residuals against fitted values
-plot(residuals(model) ~ fitted(model))
-
-# Residuals and Fitted Values
-residuals <- resid(model, type = "deviance")
-fitted_values <- fitted(model)
-
-# Residuals vs Fitted Values Plot
-plot(fitted_values, residuals, 
-     xlab = "Fitted Values", 
-     ylab = "Deviance Residuals", 
-     main = "Residuals vs Fitted Values")
-abline(h = 0, col = "red")
-
-# Q-Q Plot for Residuals
-qqnorm(residuals)
-qqline(residuals, col = "red")
-
-# Normality of Random Effects
-random_effects <- ranef(model)
-qqnorm(unlist(random_effects))
-qqline(unlist(random_effects), col = "red")
-
-# Shapiro-Wilk Test for Residuals
-shapiro.test(residuals)
-
-# Scale-Location Plot
-sqrt_abs_residuals <- sqrt(abs(residuals))
-plot(fitted_values, sqrt_abs_residuals, 
-     xlab = "Fitted Values", 
-     ylab = "Square Root of |Residuals|",
+### Scale-Location plot
+# Look for a horizontal line with
+# equally spread points. A funnel
+# shape indicates non-constant variance.
+std_residuals <-
+  residuals(m3) / sqrt(1 - hatvalues(m3)) # Calculate square root of standardized residuals
+plot(fitted(m3), std_residuals,
+     xlab = "Fitted values", ylab = "Square root of standardized residuals",
      main = "Scale-Location Plot")
-abline(h = 0, col = "red")
+abline(h = 0, col = "red")  # Add a horizontal line at zero
 
-# Partial Residual Plots
-library(car)
-crPlots(model)
+### Residuals vs Leverage plot
+# Identify influential
+# points that have a high
+# leverage and large residuals.
+plot(cooks.distance(m3), pch = 19,
+     main = "Cook's distance plot",
+     xlab = "Observation", ylab = "Cook's distance")
+abline(h = 4/length(resid(m3)), col = "red")  # Add a cutoff line for influential observations
 
-plot_model(modelo_PRScs_2, type = "pred", terms = c("PGS","deprivation", "gender1"))
-plot_summs(modelo_PRScs_2, scale = TRUE, exp = TRUE)
-summary(modelo_PRScs_1)
-plot_model(modelo_PRScs_1, type = "pred", terms = c("PGS","Deprivation", "gender1"))
-(0 + factor(site))
+### Predicted vs Actual plot
+# Points should ideally lie close
+# to the 45-degree line, indicating
+# good predictions.
+pred <- predict(m3, type = "response")
+plot(final_data$age, pred, xlab = "Actual Age", ylab = "Predicted Age", main = "Predicted vs Actual")
+abline(0, 1, col = "red")
+
+### Residuals histogram
+# Should resemble a normal
+# distribution (bell curve).
+residuals <- resid(m3)
+hist(residuals, breaks = 20, main = "Histogram of Residuals", xlab = "Residuals")
+
+### Random effects
+qqnorm(ranef(m3))
+
+### Autocorrelation plot of residuals
+# Significant spikes suggest autocorrelation
+acf(residuals, main = "Autocorrelation of Residuals")
+car::vif(m3)
+
+### Partial residual plots
+# Help to check the relationship between
+# the predictors and response, accounting
+# for other predictors.
+pacman::p_load(effects)
+plot(allEffects(m3), residuals = TRUE)
