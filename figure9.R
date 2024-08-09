@@ -38,9 +38,9 @@ wd2 <-
     diagnosis = factor(diagnosis, levels = c("0", "2"), labels = c("0", "1")),
     diagnosis = as.numeric(as.character(diagnosis))) %>%
     select(-adjusted_PRS) %>%
-  rename(ID = 1, time = 2, status = 3, PRS = 4) %>%
-  filter(PRS %in% c(1, 5)) %>%
-  mutate(PRS =  ifelse(PRS == 5, 1, 0))
+  rename(ID = 1, time = 2, status = 3, PRS = 4)
+  # filter(PRS %in% c(1, 5)) %>%
+  # mutate(PRS =  ifelse(PRS == 5, 1, 0))
 
 survdiff(
   Surv(time, status) ~ PRS,
@@ -54,26 +54,26 @@ ggsurvplot(
   data = wd2,
   linetype = "strata",
   fun = "event", # changes to the chance of diagnosis
-  conf.int = TRUE,
+  #conf.int = TRUE,
   surv.scale = "percent",
   break.time.by = 2,
   xlab = "Age (yr)",
   ylab = "Diagnosis Probability",
-  legend.labs = c("1st", "5th"),
+  legend.labs = c("1st", "2nd", "3rd", "4th", "5th"),
   legend.title = "PRS quintile",
   pval = TRUE,
   xlim = c(5, max(wd2$time)),
   risk.table = TRUE,
   risk.table.col = "strata",
-  #ncensor.plot = TRUE,
+  ncensor.plot = TRUE,
   font.legend = 20,
   ggtheme = theme_publish()
 )
 
-cox_model <- coxph(Surv(time, status) ~ PRS, data = wd2)
-ph_assumption <- cox.zph(cox_model)
-print(ph_assumption)
-plot(ph_assumption)
+# cox_model <- coxph(Surv(time, status) ~ PRS, data = wd2)
+# ph_assumption <- cox.zph(cox_model)
+# print(ph_assumption)
+# plot(ph_assumption)
 
-c_index <- concordance(Surv(wd2$time, wd2$status) ~ fitted(cox_model))
-print(c_index)
+# c_index <- concordance(Surv(wd2$time, wd2$status) ~ fitted(cox_model))
+# print(c_index)
