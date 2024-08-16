@@ -176,7 +176,7 @@ evaluate_PRS <-
 
     ## Calculate R2
     R2 <- do.call(bind_rows, lapply(processing, function(df){
-      PseudoR2(glm(PRS ~ diagnosis, data = df), which = "Nagelkerke") * 100
+      PseudoR2(glm(diagnosis ~ PRS, data = df), which = "Nagelkerke") * 100
     })) %>%
     as.data.frame() %>%
     bind_cols(

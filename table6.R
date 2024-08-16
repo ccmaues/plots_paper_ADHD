@@ -1,28 +1,26 @@
-#setwd("C:/Users/cassi/OneDrive/Área de Trabalho/github_files/plots_paper/")
+setwd("C:/Users/cassi/OneDrive/Área de Trabalho/github_files/plots_paper/")
 source("data_to_source.R")
 source("functions_to_source.R")
 
-# assumptions
-# glm residuals must be normally distributed
-model <-
-  glm(
-    age ~ adjusted_PRS + diagnosis,
-    data,
-    family = "poisson"
-  )
-# res <-
-#   as.data.frame(residuals(model)) %>%
-#   rename(residuals = 1)
+### Make generalized linear model first
+uni <- glm(
+	diagnosis ~ adjusted_PRS + age + popID + wave + p_diagnosis + sex,
+  family = "binomial",
+  data
+)
 
-ggplot(res, aes(sample = residuals)) +
-  stat_qq_line(linetype = "dashed") +
-  stat_qq(size = 5, alpha = 0.5)
+### Get explained variance of diagnosis
+### the adjusted one takes into account the
+### number of predictors (apparently and wheather
+### they are significant)
+opt <- data.frame(
+	Beta = coef(uni),
+	CI = confint(uni),
+	P_value = summary(univariate)$coefficients[, "Pr(>|z|)"],
+	#R2_Nagelkerke = numeric(),
+	stringsAsFactors = FALSE
+)
 
-rstatix::shapiro_test(res$residuals)
+PseudoR2(uni, which = "Nagelkerke") * 100
 
-t <-
-  data.frame(model$fitted.values, residuals(model)) %>%
-  rename(fit = 1, res = 2)
-
-ggplot(t, aes(fit, res)) +
-geom_point()
+opt %>% knitr::kable()

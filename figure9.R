@@ -80,7 +80,6 @@ p <-
     ggtheme = theme_publish()
   )
 
-
 p1 <-
   p$plot +
   theme(
@@ -97,10 +96,10 @@ ggsave("Figure9.png", p1, device = "png", units = "mm", height = 90, width = 120
 
 #### Verification of the model
 # log.rank.weights
-# cox_model <- coxph(Surv(time, status) ~ PRS, data = wd2)
-# ph_assumption <- cox.zph(cox_model)
-# print(ph_assumption)
-# plot(ph_assumption)
+cox_model <- coxph(Surv(time, status) ~ PRS, data = wd2)
+ph_assumption <- cox.zph(cox_model)
+print(ph_assumption)
+plot(ph_assumption)
 
-# c_index <- concordance(Surv(wd2$time, wd2$status) ~ fitted(cox_model))
-# print(c_index)
+c_index <- concordance(Surv(wd2$time, wd2$status) ~ fitted(cox_model))
+print(c_index)
