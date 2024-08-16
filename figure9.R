@@ -38,9 +38,8 @@ wd2 <-
     diagnosis = factor(diagnosis, levels = c("0", "2"), labels = c("0", "1")),
     diagnosis = as.numeric(as.character(diagnosis))) %>%
     select(-adjusted_PRS) %>%
-  rename(ID = 1, time = 2, status = 3, PRS = 4)
-  # filter(PRS %in% c(1, 5)) %>%
-  # mutate(PRS =  ifelse(PRS == 5, 1, 0))
+  rename(ID = 1, time = 2, status = 3, PRS = 4) %>%
+  mutate(time = round(time, digits = 0))
 
 survdiff(
   Surv(time, status) ~ PRS,
@@ -48,28 +47,56 @@ survdiff(
 )
 
 surv_fit <- survfit(Surv(time, status) ~ PRS, data = wd2)
+ggthemr("fresh")
 
-ggsurvplot(
-  surv_fit,
-  data = wd2,
-  linetype = "strata",
-  fun = "event", # changes to the chance of diagnosis
-  #conf.int = TRUE,
-  surv.scale = "percent",
-  break.time.by = 2,
-  xlab = "Age (yr)",
-  ylab = "Diagnosis Probability",
-  legend.labs = c("1st", "2nd", "3rd", "4th", "5th"),
-  legend.title = "PRS quintile",
-  pval = TRUE,
-  xlim = c(5, max(wd2$time)),
-  risk.table = TRUE,
-  risk.table.col = "strata",
-  ncensor.plot = TRUE,
-  font.legend = 20,
-  ggtheme = theme_publish()
-)
+p <-
+  ggsurvplot(
+    surv_fit,
+    data = wd2,
+    linetype = "strata",
+    fun = "event", # changes to the chance of diagnosis
+    censor = TRUE,
+    censor.shape = "|",
+    censor.size = 3,
+    surv.scale = "percent",
+    surv.plot.height = 0.5,
+    break.time.by = 2,
+    break.y.by = 0.05,
+    xlab = "Age (yr)",
+    ylab = "Diagnosis Probability",
+    legend.labs = c("1st", "2nd", "3rd", "4th", "5th"),
+    legend.title = "PRS quintile",
+    xlim = c(6, max(wd2$time)),
+    risk.table = "abs_pct",
+    risk.table.col = "strata",
+    risk.table.fontsize = 4,
+    risk.table.y.text = FALSE,
+    tables.height = 0.15,
+    cumevents = TRUE,
+    cumevents.col = "strata",
+    cumevents.y.text = FALSE,
+    cumevents.height = 0.15,
+    font.legend = 15,
+    ggtheme = theme_publish()
+  )
 
+
+p1 <-
+  p$plot +
+  theme(
+    text = element_text(family = "Arial"),
+    axis.text.x = element_text(size = 7),
+    axis.text.y = element_text(size = 7),
+    axis.title = element_text(size = 7),
+    legend.title = element_text(size = 7),
+    legend.text = element_text(size = 7),
+    legend.key.size = unit(0.1, "lines") # issue
+  )
+
+ggsave("Figure9.png", p1, device = "png", units = "mm", height = 90, width = 120)
+
+#### Verification of the model
+# log.rank.weights
 # cox_model <- coxph(Surv(time, status) ~ PRS, data = wd2)
 # ph_assumption <- cox.zph(cox_model)
 # print(ph_assumption)
