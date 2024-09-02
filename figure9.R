@@ -41,12 +41,8 @@ wd2 <-
   rename(ID = 1, time = 2, status = 3, PRS = 4) %>%
   mutate(time = round(time, digits = 0))
 
-survdiff(
-  Surv(time, status) ~ PRS,
-  data = wd2
-)
-
 surv_fit <- survfit(Surv(time, status) ~ PRS, data = wd2)
+summary(surv_fit)
 ggthemr("fresh")
 
 p <-
@@ -95,11 +91,27 @@ p1 <-
 ggsave("Figure9.png", p1, device = "png", units = "mm", height = 90, width = 120)
 
 #### Verification of the model
-# log.rank.weights
+# Log.rank test: is there any difference between the curves?
+survdiff(
+  Surv(time, status) ~ PRS,
+  data = wd2
+)
+# evaluate the effect of the predictor on survival more formally
+# check propotional hazards assumptions
 cox_model <- coxph(Surv(time, status) ~ PRS, data = wd2)
 ph_assumption <- cox.zph(cox_model)
+# Must be p > 0.05 = no variance throughout the time
 print(ph_assumption)
+# Must not present any non-linear pattern
 plot(ph_assumption)
+# Concordance between model x data
+pacman::p_load(survcomp)
+c_index <- concordance.index(
+  predict(cox_model),
+  surv.time = wd2$time,
+  surv.event = wd2$status
+)
+print(c_index$c.index)
 
-c_index <- concordance(Surv(wd2$time, wd2$status) ~ fitted(cox_model))
-print(c_index)
+# could we do a plot showing the censoring over time
+# https://www.emilyzabor.com/tutorials/survival_analysis_in_r_tutorial.html
