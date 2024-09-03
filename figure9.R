@@ -6,7 +6,7 @@ source("functions_to_source.R")
 # probability of those in the interesting
 # quintiles of converting in the years
 # Install and load the necessary packages
-pacman::p_load(survival, survminer)
+pacman::p_load(survival, survminer, survcomp)
 
 # Example data (replace this with your actual dataset)
 # Assuming your data frame is called df and has columns:
@@ -42,7 +42,7 @@ wd2 <-
   mutate(time = round(time, digits = 0))
 
 surv_fit <- survfit(Surv(time, status) ~ PRS, data = wd2)
-summary(surv_fit)
+
 ggthemr("fresh")
 
 p <-
@@ -105,13 +105,11 @@ print(ph_assumption)
 # Must not present any non-linear pattern
 plot(ph_assumption)
 # Concordance between model x data
-pacman::p_load(survcomp)
 c_index <- concordance.index(
   predict(cox_model),
   surv.time = wd2$time,
   surv.event = wd2$status
 )
 print(c_index$c.index)
-
 # could we do a plot showing the censoring over time
 # https://www.emilyzabor.com/tutorials/survival_analysis_in_r_tutorial.html
