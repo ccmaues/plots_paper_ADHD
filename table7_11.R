@@ -64,11 +64,10 @@ for (i in unique(surv_summary$strata)) {
     lower_95_CI = lower_95_CI,
     upper_95_CI = upper_95_CI
   )
-#  survival_list[[i]] <- data_frame
 	data_frame %>%
 	mutate(across(1:7, round, digits = 3)) %>%
 	rename(
 		"Age(yr)" = 1, "N risk" = 2, "N event" = 3,
 		Survival = 4, "Std. Error" = 5, "Lower 95% CI" = 6, "Upper 95% CI" = 7) %>%
-	fwrite(glue("{i}_adj_ADHD_surv.tsv"), sep = "\t")
+	writexl::write_xlsx(glue("{i}_adj_ADHD_surv.xlsx"))
 }
