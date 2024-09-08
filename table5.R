@@ -1,46 +1,6 @@
 # PRS MODEL EVALUATION
 source("functions_to_source.R")
-
-# PRS values
-vADHD <-
-  prs_v3 %>%
-  select(IID, ADHD) %>%
-  rename(PRS = ADHD) %>%
-  mutate(
-    quintile = as.factor(ntile(PRS, 5)),
-    quintile = case_when(
-    quintile == 1 ~ "1st",
-    quintile == 2 ~ "2nd",
-    quintile == 3 ~ "3rd",
-    quintile == 4 ~ "4th",
-    quintile == 5 ~ "5th")) %>%
-  select(-PRS)
-
-# Phenotype for N adjustment
-pADHD <-
-  pheno %>%
-  select(IID, dcanyhk, wave) %>%
-  rename(ADHD = dcanyhk) %>%
-  tidyr::pivot_wider(
-    names_from = "wave",
-    values_from = "ADHD"
-  )
-
-## working data
-data <-
-  plyr::join_all(
-  list(vADHD, sex, state, anc, ages, pADHD),
-  by = "IID", type = "inner") %>%
-  select(-IID) %>%
-  mutate(
-    popID = as.factor(case_when(
-    popID == "BRA_SP" ~ "SP",
-    popID == "BRA_RS" ~ "RS")))
-
-data$quintile <-
-  factor(
-    data$quintile,
-    levels = c("1st", "2nd", "3rd", "4th", "5th"))
+source("data_to_source.R")
 
 ## Necessary libraries
 # nsROC
@@ -50,14 +10,11 @@ library(DescTools)
 # PR Curve
 library(PRROC)
 evaluate_PRS <-
-  function(prs_column, pheno_code) {
+  function(prs_column, pheno_code, data_frame) {
   ## Main data
-  data <-
-    prs_v3 %>%
-    select(IID, {{prs_column}}) %>%
-    inner_join(., select(pheno, IID, wave, {{pheno_code}}), by = "IID") %>%
-    rename(PRS = 2, diagnosis = 4) %>%
-    select(-IID)
+  data <- data_frame %>%
+    select(prs_column, pheno_code, wave) %>%
+    rename(PRS = 1)
   processing <- group_split(data, wave)
 
   ## Calculate ROC
@@ -176,7 +133,7 @@ evaluate_PRS <-
 
     ## Calculate R2
     R2 <- do.call(bind_rows, lapply(processing, function(df){
-      PseudoR2(glm(diagnosis ~ PRS, data = df), which = "Nagelkerke") * 100
+      PseudoR2(glm(diagnosis ~ PRS, family = "binomial", data = df), which = "Nagelkerke") * 100
     })) %>%
     as.data.frame() %>%
     bind_cols(
@@ -198,9 +155,10 @@ evaluate_PRS <-
 }
 
 ## by wave
-evaluate_PRS("ADHD", "dcanyhk")
-opt <- evaluate_PRS("ADHD", "dcanyhk")
+evaluate_PRS("adjusted_PRS", "diagnosis", data)
+opt <- evaluate_PRS("adjusted_PRS", "diagnosis", data)
 ## by sex
-
-
-## all time
+# female
+evaluate_PRS("adjusted_PRS", "diagnosis", filter(data, sex == "Female"))
+# male
+evaluate_PRS("adjusted_PRS", "diagnosis", filter(data, sex == "Male"))

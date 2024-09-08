@@ -24,62 +24,72 @@ t2 <-
   filter(age == min(age)) %>%
   ungroup()
 
+# verify AGAIN this fucking model
 wd <-
   bind_rows(t1, t2) %>%
-  select(IID, age, diagnosis, adjusted_PRS, sex) %>%
-	inner_join(., select(data, IID, p_diagnosis), by = "IID") %>%
+  select(IID, age, diagnosis, adjusted_PRS) %>%
   mutate(
     quintile = ntile(adjusted_PRS, 5),
     diagnosis = factor(diagnosis, levels = c("0", "2"), labels = c("0", "1")),
     diagnosis = as.numeric(as.character(diagnosis))) %>%
     select(-adjusted_PRS) %>%
-  rename(ID = 1, time = 2, status = 3, Sex = 4, p_diagnosis = 5, PRS = 6) %>%
-  mutate(time = round(time, digits = 0))
+  left_join(.,
+    select(data, IID, sex, wave, p_diagnosis),
+    by = "IID") %>%
+  rename(ID = 1, time = 2, status = 3, PRS = 4) %>%
+  mutate(time = round(time, digits = 0)) %>%
+  data.frame()
 
-##### MODEL TESTING ----------------------------------------
-# AFT M1
-pacman::p_load(flexsurv, SurvRegCensCov)
-aft <- survreg(Surv(time, status) ~ PRS, data = wd, dist = 'weibull')
-ConvertWeibull(aft, conf.level = 0.95)
-flexsurvreg(Surv(time, status) ~ PRS, data = wd, dist = 'weibull')
+#### Verification of the model
+  # Log.rank test: is there any difference between the curves?
+  # evaluate the effect of the predictor on survival more formally
+  # check propotional hazards assumptions
+  # Must be p > 0.05 = no variance throughout the time
+  # Must not present any non-linear pattern
+  # Concordance between model x data
 
-# Model 1
-m1 <- coxph(Surv(time, status) ~ PRS, data = wd)
-summary(m1)
-# Check proportional harzards assumption Schoenfeld residuals
-phaM1 <- cox.zph(m1)
-# Must be p > 0.05 = no variance throughout the time
-print(phaM1)
-# Must present linearity an "Overall" line linear too
-plot(phaM1)
-# Is the model correct?
-cixM1 <- concordance(Surv(time, status) ~ predict(m1), data = wd)
-print(cixM1)
+test_surv_model <- function(data_frame, equation = NULL) {
+  if (missing(equation) || is.null(equation)) {
+    cox_model <- coxph(Surv(time, status) ~ PRS, data = data_frame)
+    diff <- survdiff(Surv(time, status) ~ PRS, data = data_frame)
+  } else {
+    cox_model <- coxph(as.formula(equation), data = data_frame)
+    diff <- survdiff(as.formula(equation), data = data_frame)
+  }
+  model_summary <- summary(cox_model)
+  cox_zph <- cox.zph(cox_model)
+  data.frame(
+    model_pvalue = model_summary$coefficients[, "Pr(>|z|)"][1],
+    cox_assumption_chisq = cox_zph$table[1, "chisq"],
+    cox_assumption_df = cox_zph$table[1, "df"],
+    cox_assumption_pvalue = cox_zph$table[1, "p"],
+    chisq_curves = diff$chisq,
+    chisq_pvalue = pchisq(diff$chisq, df = length(diff$n) - 1, lower.tail = FALSE),
+    chisq_df = length(diff$n) - 1,
+    concordance = model_summary$concordance[1],
+    concordance_se = model_summary$concordance[2]) %>%
+   mutate(across(where(is.numeric), round, 3)) %>%
+  return()
+}
 
+# Example usage
+m1 <- test_surv_model(wd)
 # m 2
-m2 <- coxph(Surv(time, status) ~ PRS + Sex, data = wd)
-summary(m2)
-cox.zph(m2)
-plot(cox.zph(m2))
-concordance(Surv(time, status) ~ predict(m2), data = wd)
-
+m2 <- test_surv_model(wd, "Surv(time, status) ~ PRS + sex")
 # m 3
-m3 <- coxph(Surv(time, status) ~ PRS + p_diagnosis, data = wd)
-summary(m3)
-cox.zph(m3)
-plot(cox.zph(m3))
-concordance(Surv(time, status) ~ predict(m3), data = wd)
-
+m3 <- test_surv_model(wd, "Surv(time, status) ~ PRS + p_diagnosis")
 # m 4
-m4 <- coxph(Surv(time, status) ~ PRS + Sex + p_diagnosis, data = wd)
-summary(m4)
-cox.zph(m4)
-plot(cox.zph(m4))
-concordance(Surv(time, status) ~ predict(m4), data = wd)
+m4 <- test_surv_model(wd, "Surv(time, status) ~ PRS + sex + p_diagnosis")
+# m 5w
+m5 <- test_surv_model(wd, "Surv(time, status) ~ PRS + sex*p_diagnosis")
 
-# m 5
-m5 <- coxph(Surv(time, status) ~ PRS + Sex*p_diagnosis, data = wd)
-summary(m5)
-cox.zph(m5)
-plot(cox.zph(m5))
-concordance(Surv(time, status) ~ predict(m5), data = wd)
+# create final table
+cbind(
+  model = c("M1", "M2", "M3", "M4"),
+  bind_rows(m1, m2, m3, m4)) %>%
+knitr::kable("simple", row.names = FALSE)
+
+cbind(
+  model = c("M1", "M2", "M3", "M4"),
+  bind_rows(m1, m2, m3, m4)) %>%
+writexl::write_xlsx(glue("table12.xlsx"))

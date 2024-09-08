@@ -2,10 +2,10 @@
 source("plots_paper/data_to_source.R")
 source("plots_paper/functions_to_source.R")
 
-<<<<<<<< HEAD:OR_tables.R
+#<<<<<<<< HEAD:OR_tables.R
 # gotta separate into groups
-========
->>>>>>>> 1e1214a0ce8396ef395ba02ed3f2fcfc8b4c4fd5:table2.R
+#========
+#>>>>>>>> 1e1214a0ce8396ef395ba02ed3f2fcfc8b4c4fd5:table2.R
 glm(
   age ~ adjusted_PRS + diagnosis + sex,
   data, family = gaussian) %>% # não é normal a idade

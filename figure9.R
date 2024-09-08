@@ -89,27 +89,3 @@ p1 <-
   )
 
 ggsave("Figure9.png", p1, device = "png", units = "mm", height = 90, width = 120)
-
-#### Verification of the model
-# Log.rank test: is there any difference between the curves?
-survdiff(
-  Surv(time, status) ~ PRS,
-  data = wd2
-)
-# evaluate the effect of the predictor on survival more formally
-# check propotional hazards assumptions
-cox_model <- coxph(Surv(time, status) ~ PRS, data = wd2)
-ph_assumption <- cox.zph(cox_model)
-# Must be p > 0.05 = no variance throughout the time
-print(ph_assumption)
-# Must not present any non-linear pattern
-plot(ph_assumption)
-# Concordance between model x data
-c_index <- concordance.index(
-  predict(cox_model),
-  surv.time = wd2$time,
-  surv.event = wd2$status
-)
-print(c_index$c.index)
-# could we do a plot showing the censoring over time
-# https://www.emilyzabor.com/tutorials/survival_analysis_in_r_tutorial.html
