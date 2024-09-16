@@ -35,11 +35,17 @@ wd2 <-
   select(IID, age, diagnosis, adjusted_PRS) %>%
   mutate(
     quintile = ntile(adjusted_PRS, 5),
+    #quintile = ntile(adjusted_PRS, 3),
     diagnosis = factor(diagnosis, levels = c("0", "2"), labels = c("0", "1")),
     diagnosis = as.numeric(as.character(diagnosis))) %>%
     select(-adjusted_PRS) %>%
   rename(ID = 1, time = 2, status = 3, PRS = 4) %>%
   mutate(time = round(time, digits = 0))
+
+temp <- inner_join(rename(wd2, IID = 1), sex, by = "IID") %>%
+rename(ID = 1)
+surv_fit1 <- survfit(Surv(time, status) ~ PRS, data = filter(temp, sex == "Female"))
+surv_fit2 <- survfit(Surv(time, status) ~ PRS, data = filter(temp, sex == "Male"))
 
 surv_fit <- survfit(Surv(time, status) ~ PRS, data = wd2)
 
@@ -47,8 +53,8 @@ ggthemr("fresh")
 
 p <-
   ggsurvplot(
-    surv_fit,
-    data = wd2,
+    surv_fit2,
+    data = filter(temp, sex == "Male"),
     linetype = "strata",
     fun = "event", # changes to the chance of diagnosis
     censor = TRUE,
@@ -62,7 +68,11 @@ p <-
     ylab = "Diagnosis Probability",
     legend.labs = c("1st", "2nd", "3rd", "4th", "5th"),
     legend.title = "PRS quintile",
-    xlim = c(6, max(wd2$time)),
+    #legend.labs = c("Low", "Medium", "High"),
+    #legend.title = "PRS level",
+    #xlim = c(6, max(wd2$time)),
+    xlim = c(6, 20),
+    ylim = c(0,0.25),
     risk.table = "abs_pct",
     risk.table.col = "strata",
     risk.table.fontsize = 4,
@@ -74,6 +84,7 @@ p <-
     cumevents.height = 0.15,
     font.legend = 15,
     ggtheme = theme_publish()
+    # can I put a scale_x_continuous de 1 em 1 ano?
   )
 
 p1 <-
@@ -88,4 +99,11 @@ p1 <-
     legend.key.size = unit(0.1, "lines") # issue
   )
 
-ggsave("Figure9.png", p1, device = "png", units = "mm", height = 90, width = 120)
+ggsave(
+  "Figure12_male.png",
+  p1,
+  device = "png",
+  units = "mm",
+  height = 80,
+  width = 100,
+  bg = "white")

@@ -3,7 +3,6 @@ source("data_to_source.R")
 source("functions_to_source.R")
 
 ### Get individual R2 for diagnosis
-
 m1 <- DescTools::PseudoR2(
 	glm(diagnosis ~ sex, data = data, family = "binomial"),
 	which = "Nagelkerke"

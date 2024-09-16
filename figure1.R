@@ -1,3 +1,5 @@
+setwd("C:/Users/cassi/OneDrive/Área de Trabalho/github_files/plots_paper/")
+source("data_to_source.R")
 source("functions_to_source.R")
 
 # PRS data
@@ -119,25 +121,25 @@ mutate(tags = case_when(
 ))
 all_plots$tags <- factor(all_plots$tags, levels = c("A", "B", "C"))
 finalv2 <-
-ggplot(all_plots, aes(ntile, prevalence * 100, color = wave, group = wave)) +
+ggplot(for_plot_male, aes(ntile, prevalence * 100, color = wave, group = wave)) +
   geom_line(linetype = "dashed", alpha = 0.6) +
   geom_point() +
   scale_x_discrete(labels = new_x_axis) +
   scale_y_continuous(n.breaks = 10, limits = c(5, 24)) +
   theme_publish(base_size = 7) +
-  labs(y = "\nPrevalence\n", x = "\nPRS quantile\n") +
+  labs(y = "\nPrevalence\n", x = "\nPRS quintile\n") +
   theme(
     text = element_text(family = "Arial"),
     axis.line = element_line(linewidth = 1),
     legend.position = "top",
     legend.title = element_blank(),
-    strip.text.x = element_text(color = "black", face = "bold", vjust = 2)) +
-  facet_wrap( ~ tags, scales = "free_y", nrow = 3)
+    strip.text.x = element_text(color = "black", face = "bold", vjust = 2))
+  #facet_wrap( ~ tags, scales = "free_y", nrow = 3)
   
 finalv2
 
 ggsave(
-  "Figure1_version3.png", finalv2, device = "png",
-  width = 85, height = 150, units = c("mm"),
+  "Figure1_only_males.png", finalv2, device = "png",
+  width = 100, height = 60, units = c("mm"),
   dpi = 300, bg = "white"
 )
