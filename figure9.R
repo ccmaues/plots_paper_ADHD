@@ -19,11 +19,13 @@ pacman::p_load(survival, survminer, survcomp)
 # separate the controls
 t1 <-
   data %>%
+  filter(age >= 10 & age <= 20) %>%
   filter(wave == "W2" & diagnosis == 0)
 # separate the cases and
 # keep just the first occurance of diagnosis
 t2 <-
   data %>%
+  filter(age >= 10 & age <= 20) %>%
   filter(!IID %in% t1$IID) %>%
   filter(diagnosis == 2) %>%
   group_by(IID) %>%
@@ -34,18 +36,13 @@ wd2 <-
   bind_rows(t1, t2) %>%
   select(IID, age, diagnosis, adjusted_PRS) %>%
   mutate(
-    quintile = ntile(adjusted_PRS, 5),
-    #quintile = ntile(adjusted_PRS, 3),
+    #quintile = ntile(adjusted_PRS, 5),
+    quintile = ntile(adjusted_PRS, 3),
     diagnosis = factor(diagnosis, levels = c("0", "2"), labels = c("0", "1")),
     diagnosis = as.numeric(as.character(diagnosis))) %>%
     select(-adjusted_PRS) %>%
   rename(ID = 1, time = 2, status = 3, PRS = 4) %>%
   mutate(time = round(time, digits = 0))
-
-temp <- inner_join(rename(wd2, IID = 1), sex, by = "IID") %>%
-rename(ID = 1)
-surv_fit1 <- survfit(Surv(time, status) ~ PRS, data = filter(temp, sex == "Female"))
-surv_fit2 <- survfit(Surv(time, status) ~ PRS, data = filter(temp, sex == "Male"))
 
 surv_fit <- survfit(Surv(time, status) ~ PRS, data = wd2)
 
@@ -53,8 +50,8 @@ ggthemr("fresh")
 
 p <-
   ggsurvplot(
-    surv_fit2,
-    data = filter(temp, sex == "Male"),
+    surv_fit,
+    data = wd2,
     linetype = "strata",
     fun = "event", # changes to the chance of diagnosis
     censor = TRUE,
@@ -66,13 +63,12 @@ p <-
     break.y.by = 0.05,
     xlab = "Age (yr)",
     ylab = "Diagnosis Probability",
-    legend.labs = c("1st", "2nd", "3rd", "4th", "5th"),
-    legend.title = "PRS quintile",
-    #legend.labs = c("Low", "Medium", "High"),
-    #legend.title = "PRS level",
-    #xlim = c(6, max(wd2$time)),
-    xlim = c(6, 20),
-    ylim = c(0,0.25),
+    # legend.labs = c("1st", "2nd", "3rd", "4th", "5th"),
+    # legend.title = "PRS quintile",
+    legend.labs = c("Low", "Medium", "High"),
+    legend.title = "Risk level",
+    xlim = c(min(wd2$time), max(wd2$time)),
+    ylim = c(0, 0.25),
     risk.table = "abs_pct",
     risk.table.col = "strata",
     risk.table.fontsize = 4,
@@ -83,12 +79,13 @@ p <-
     cumevents.y.text = FALSE,
     cumevents.height = 0.15,
     font.legend = 15,
-    ggtheme = theme_publish()
-    # can I put a scale_x_continuous de 1 em 1 ano?
+    ggtheme = theme_publish()    
   )
 
 p1 <-
   p$plot +
+  scale_x_continuous(n.breaks = 10) +
+  scale_color_manual(values = c("Low" = "#6a9716", "Medium" = "#FF5733", "High" = "#C70039")) +
   theme(
     text = element_text(family = "Arial"),
     axis.text.x = element_text(size = 7),
@@ -96,14 +93,14 @@ p1 <-
     axis.title = element_text(size = 7),
     legend.title = element_text(size = 7),
     legend.text = element_text(size = 7),
-    legend.key.size = unit(0.1, "lines") # issue
-  )
-
+    legend.key.size = unit(0.1, "lines"))
+  
+p1
 ggsave(
-  "Figure12_male.png",
+  "Figure9.png",
   p1,
   device = "png",
   units = "mm",
   height = 80,
-  width = 100,
+  width = 150,
   bg = "white")

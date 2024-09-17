@@ -50,17 +50,6 @@ data <- cass_BHRC %>%
 	rename(evaluation_date = d_date, sex = gender) %>%
 	mutate_if(is.character, as.factor)
 
-# whats the difference of d_date, p_date1, and p_date2, nc_date, p_psico_date1,
-# p_psico_date2, apc_date1, apm_date1, y_date?
-# p_height ou sp2a(latter?) I DONT have it
-# gender != gender_original:
-# birth_date: data de nascimento
-# age: idade em anos a cada avaliação/onda
-# site != site_original: estado?
-# avaliação: d_date?
-# Use IIDs that were kept after the QC (i.e. 2190)
-# parents, original PRS, age, state+admixture, pheno, and sex
-
 ggthemr("fresh")
 
 summary(data)

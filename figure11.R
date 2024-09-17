@@ -46,14 +46,14 @@ wd2 <-
 	inner_join(., sex, by = "IID") %>%
   rename(ID = 1)
 
-surv_fit <- survfit(Surv(time, status) ~ PRS, data = filter(wd2, sex == "Female"))
+surv_fit <- survfit(Surv(time, status) ~ PRS, data = filter(wd2, sex == "Male"))
 
 ggthemr("fresh")
 
 p <-
   ggsurvplot(
     surv_fit,
-    data = filter(wd2, sex == "Female"),
+    data = filter(wd2, sex == "Male"),
     linetype = "strata",
     fun = "event", # changes to the chance of diagnosis
     censor = TRUE,
@@ -100,7 +100,7 @@ p1 <-
   
 p1
 ggsave(
-  "Figure10.png",
+  "Figure11.png",
   p1,
   device = "png",
   units = "mm",
