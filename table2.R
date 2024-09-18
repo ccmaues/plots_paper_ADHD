@@ -1,54 +1,17 @@
-#setwd("C:/Users/cassi/OneDrive/Área de Trabalho/github_files/plots_paper/")
-source("plots_paper/data_to_source.R")
-source("plots_paper/functions_to_source.R")
+#setwd("/media/santorolab/C207-3566")
+source("data_to_source.R")
+source("functions_to_source.R")
 
-#<<<<<<<< HEAD:OR_tables.R
-# gotta separate into groups
-#========
-#>>>>>>>> 1e1214a0ce8396ef395ba02ed3f2fcfc8b4c4fd5:table2.R
-glm(
-  age ~ adjusted_PRS + diagnosis + sex,
-  data, family = gaussian) %>% # não é normal a idade
-tbl_regression(exponenciate = TRUE)
-# summary(fit.ex4.1)$adj.r.squared
+prs_data <-
+	data %>%
+	select(IID, orignal_PRS, zscore_PRS, adjusted_PRS) %>%
+	unique()
 
-## For time comparison
-W0 <-
-  data %>%
-  filter(wave == "W0") %>%
-  select(-wave) %>%
-  select(-IID)
+library(psych)
+opt <- rbind(
+	describe(prs_values$original_PRS),
+	describe(prs_values$zscored_PRS),
+	describe(prs_values$adjusted_PRS))
+rownames(opt) <- c("Original", "Z-score", "Adjusted")
 
-W1 <-
-  data %>%
-  filter(wave == "W1") %>%
-  select(-wave) %>%
-  select(-IID)
-
-W2 <-
-  data %>%
-  filter(wave == "W2") %>%
-  select(-wave) %>%
-  select(-IID)
-
-## Get Odds Ratio into a table
-W0_OR <- uni_model_OR(W0)
-W1_OR <- uni_model_OR(W1)
-W2_OR <- uni_model_OR(W2)
-
-all_time_OR %>%
-as_flex_table() %>%
-flextable::save_as_docx(fileext = ".docx", path = "all_time_model.docx")
-
-W0_OR %>%
-as_flex_table() %>%
-flextable::save_as_docx(fileext = ".docx", path = "W0_model.docx")
-
-W1_OR %>%
-as_flex_table() %>%
-flextable::save_as_docx(fileext = ".docx", path = "W1_model.docx")
-
-W2_OR %>%
-as_flex_table() %>%
-flextable::save_as_docx(fileext = ".docx", path = "W2_model.docx")
-# knitr::kable()
+writexl::write_xlsx(opt, "table2.xlsx")

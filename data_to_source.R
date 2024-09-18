@@ -42,8 +42,8 @@ rename(adjusted_PRS = ADHD)
 
 ogvADHD <-
 fread(glue("{Path}/PRS_database/Final_Scores_PRSCS/PRSCS_ADHD_Score.profile")) %>%
-select(IID, PRSCS_zscore) %>%
-rename(original_PRS = 2)
+select(IID, PRSCS_zscore, PRSCS) %>%
+rename(zscore_PRS = 2, orignal_PRS = 3)
 
 aADHD <-
 ages %>%
@@ -65,5 +65,6 @@ filter(IID %in% ages$IID) %>%
 mutate(
   diagnosis = as.factor(diagnosis),
   wave = as.factor(wave))
+  # might adjust here the things
 
 rm(vADHD, ogvADHD, aADHD, pADHD)
