@@ -2,61 +2,47 @@ setwd("C:/Users/cassi/OneDrive/Área de Trabalho/github_files/plots_paper/")
 source("data_to_source.R")
 source("functions_to_source.R")
 
-# PRS data
-vADHD <-
-select(prs_v3, IID, ADHD) %>%
-rename(PRS = ADHD)
-
-# Phenotype data
-pADHD <-
-select(pheno, IID, wave, dcanyhk) %>%
-rename(ADHD = dcanyhk) %>%
-tidyr::pivot_wider(
-  names_from = "wave",
-  values_from = "ADHD"
-) %>%
-inner_join(., sex, by = "IID")
-
 # Working data
-data <-
-inner_join(vADHD, pADHD, by = "IID") %>%
-select(-sex)
+data <- data %>%
+  select(IID, adjusted_PRS, sex, wave, diagnosis) %>%
+  rename(PRS = 2) %>%
+  tidyr::pivot_wider(
+    names_from = "wave",
+    values_from = "diagnosis")
 
-data_female <-
-inner_join(vADHD, pADHD, by = "IID") %>%
-filter(sex == "Female") %>%
-select(-sex)
+data_female <- data %>%
+  filter(sex == "Female") %>%
+  select(-sex)
 
-data_male <-
-inner_join(vADHD, pADHD, by = "IID") %>%
-filter(sex == "Male") %>%
-select(-sex)
+data_male <- data %>%
+  filter(sex == "Male") %>%
+  select(-sex)
 
 # Prevalence calculation (Overall)
 p1 <-
-calc_prev(data, 5, "PRS", "W0") %>%
-rename(W0 = 2)
+  calc_prev(data, 5, "PRS", "W0") %>%
+  rename(W0 = 2)
 
 p2 <-
-calc_prev(data, 5, "PRS", "W1") %>%
-rename(W1 = 2)
+  calc_prev(data, 5, "PRS", "W1") %>%
+  rename(W1 = 2)
 
 p3 <-
-calc_prev(data, 5, "PRS", "W2") %>%
-rename(W2 = 2)
+  calc_prev(data, 5, "PRS", "W2") %>%
+  rename(W2 = 2)
 
 # Prevalence calculation (Female)
 p1_fem <-
-calc_prev(data_female, 5, "PRS", "W0") %>%
-rename(W0 = 2)
+  calc_prev(data_female, 5, "PRS", "W0") %>%
+  rename(W0 = 2)
 
 p2_fem <-
-calc_prev(data_female, 5, "PRS", "W1") %>%
-rename(W1 = 2)
+  calc_prev(data_female, 5, "PRS", "W1") %>%
+  rename(W1 = 2)
 
 p3_fem <-
-calc_prev(data_female, 5, "PRS", "W2") %>%
-rename(W2 = 2)
+  calc_prev(data_female, 5, "PRS", "W2") %>%
+  rename(W2 = 2)
 
 # Prevalence calculation (Male)
 p1_male <-
