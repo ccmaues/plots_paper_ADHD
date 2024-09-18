@@ -1,6 +1,6 @@
-#setwd("C:/Users/cassi/OneDrive/Área de Trabalho/github_files/plots_paper/")
-source("plots_paper/data_to_source.R")
-source("plots_paper/functions_to_source.R")
+setwd("C:/Users/cassi/OneDrive/Área de Trabalho/github_files/plots_paper/")
+source("data_to_source.R")
+source("functions_to_source.R")
 
 glm(
   age ~ adjusted_PRS + diagnosis + sex,

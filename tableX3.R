@@ -18,14 +18,12 @@ pacman::p_load(survival, survminer, survcomp)
 # Simplify the data
 # separate the controls
 t1 <-
-	data %>%
-  filter(age >= 10 & age <= 20) %>%
+  data %>%
   filter(wave == "W2" & diagnosis == 0)
 # separate the cases and
 # keep just the first occurance of diagnosis
 t2 <-
   data %>%
-	filter(age >= 10 & age <= 20) %>%
   filter(!IID %in% t1$IID) %>%
   filter(diagnosis == 2) %>%
   group_by(IID) %>%
@@ -53,62 +51,31 @@ wd2 <-
 
 surv_fit <- survfit(Surv(time, status) ~ PRS, data = filter(wd2, sex == "Male"))
 
-ggthemr("fresh")
+surv_summary <- summary(surv_fit)
 
-p <-
-  ggsurvplot(
-    surv_fit,
-    data = filter(wd2, sex == "Male"),
-    linetype = "strata",
-    fun = "event", # changes to the chance of diagnosis
-    censor = TRUE,
-    censor.shape = "|",
-    censor.size = 3,
-    surv.scale = "percent",
-    surv.plot.height = 0.5,
-    break.time.by = 2,
-    break.y.by = 0.05,
-    xlab = "Age (yr)",
-    ylab = "Diagnosis Probability",
-    legend.labs = c("Low", "Medium", "High"),
-    legend.title = "Risk level",
-    xlim = c(min(wd2$time), max(wd2$time)),
-    ylim = c(0, 0.25),
-    risk.table = "abs_pct",
-    risk.table.col = "strata",
-    risk.table.fontsize = 4,
-    risk.table.y.text = FALSE,
-    tables.height = 0.15,
-    cumevents = TRUE,
-    cumevents.col = "strata",
-    cumevents.y.text = FALSE,
-    cumevents.height = 0.15,
-    font.legend = 15,
-    ggtheme = theme_publish()
+survival_list <- list()
+
+for (i in unique(surv_summary$strata)) {
+  group_data <- surv_summary$time[surv_summary$strata == i]
+  n_risk <- surv_summary$n.risk[surv_summary$strata == i]
+  n_event <- surv_summary$n.event[surv_summary$strata == i]
+  survival <- surv_summary$surv[surv_summary$strata == i]
+  std_err <- surv_summary$std.err[surv_summary$strata == i]
+  lower_95_CI <- surv_summary$lower[surv_summary$strata == i]
+  upper_95_CI <- surv_summary$upper[surv_summary$strata == i]
+  data_frame <- data.frame(
+    time = group_data,
+    n.risk = n_risk,
+    n.event = n_event,
+    survival = survival,
+    std.err = std_err,
+    lower_95_CI = lower_95_CI,
+    upper_95_CI = upper_95_CI
   )
-
-p1 <-
-  p$plot +
-  scale_x_continuous(n.breaks = 10) +
-  scale_color_manual(values = c(
-		"Low" = "#6a9716",
-		"Medium" = "#FF5733",
-		"High" = "#C70039")) +
-  theme(
-    text = element_text(family = "Arial"),
-    axis.text.x = element_text(size = 7),
-    axis.text.y = element_text(size = 7),
-    axis.title = element_text(size = 7),
-    legend.title = element_text(size = 7),
-    legend.text = element_text(size = 7),
-    legend.key.size = unit(0.1, "lines"))
-  
-p1
-ggsave(
-  "Figure11.png",
-  p1,
-  device = "png",
-  units = "mm",
-  height = 80,
-  width = 150,
-  bg = "white")
+	data_frame %>%
+	mutate(across(1:7, round, digits = 3)) %>%
+	rename(
+		"Age(yr)" = 1, "N risk" = 2, "N event" = 3,
+		Survival = 4, "Std. Error" = 5, "Lower 95% CI" = 6, "Upper 95% CI" = 7) %>%
+	writexl::write_xlsx(glue("{i}_adj_ADHD_surv_man.xlsx"))
+}

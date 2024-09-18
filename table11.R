@@ -16,11 +16,10 @@ uni <- glm(
 opt <- data.frame(
 	Beta = coef(uni),
 	CI = confint(uni),
-	P_value = summary(univariate)$coefficients[, "Pr(>|z|)"],
+	P_value = summary(uni)$coefficients[, "Pr(>|z|)"],
 	#R2_Nagelkerke = numeric(),
 	stringsAsFactors = FALSE
 )
 
-PseudoR2(uni, which = "Nagelkerke") * 100
-
 opt %>% knitr::kable()
+summary(uni)

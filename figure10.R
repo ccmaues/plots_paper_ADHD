@@ -36,11 +36,16 @@ wd2 <-
   bind_rows(t1, t2) %>%
   select(IID, age, diagnosis, adjusted_PRS) %>%
   mutate(
-    quintile = ntile(adjusted_PRS, 3),
+    risk = ntile(adjusted_PRS, 3),
     diagnosis = factor(diagnosis, levels = c("0", "2"), labels = c("0", "1")),
-    diagnosis = as.numeric(as.character(diagnosis))) %>%
-    select(-adjusted_PRS) %>%
-  rename(ID = 1, time = 2, status = 3, PRS = 4) %>%
+    diagnosis = as.numeric(as.character(diagnosis)),
+    PRS = case_when(
+      risk == 1 ~ "Low",
+      risk == 2 ~ "Medium",
+      risk == 3 ~ "High"),
+    PRS = factor(PRS, levels = c("Low", "Medium", "High"))) %>%
+    select(-adjusted_PRS, -risk) %>%
+  rename(ID = 1, time = 2, status = 3) %>%
   mutate(time = round(time, digits = 0)) %>%
 	rename(IID = 1) %>%
 	inner_join(., sex, by = "IID") %>%

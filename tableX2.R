@@ -18,14 +18,12 @@ pacman::p_load(survival, survminer, survcomp)
 # Simplify the data
 # separate the controls
 t1 <-
-	data %>%
-  filter(age >= 10 & age <= 20) %>%
+  data %>%
   filter(wave == "W2" & diagnosis == 0)
 # separate the cases and
 # keep just the first occurance of diagnosis
 t2 <-
   data %>%
-	filter(age >= 10 & age <= 20) %>%
   filter(!IID %in% t1$IID) %>%
   filter(diagnosis == 2) %>%
   group_by(IID) %>%
@@ -51,14 +49,33 @@ wd2 <-
 	inner_join(., sex, by = "IID") %>%
   rename(ID = 1)
 
-a <- survdiff(Surv(time, status) ~ PRS, data = wd2)
-b <- survdiff(Surv(time, status) ~ PRS, data = filter(wd2, sex == "Female"))
-c <- survdiff(Surv(time, status) ~ PRS, data = filter(wd2, sex == "Male"))
+surv_fit <- survfit(Surv(time, status) ~ PRS, data = filter(wd2, sex == "Female"))
 
-opt <- data.frame(
-  model = c("All data", "Female", "Male"),
-  n = c(nrow(wd2), nrow(filter(wd2, sex == "Female")), nrow(filter(wd2, sex == "Male"))),
-  chisq = c(a$chisq, b$chisq, c$chisq),
-  pvalue = c(a$pvalue, b$pvalue, c$pvalue)) %>%
-  mutate(across(chisq:pvalue, round, 3))
+surv_summary <- summary(surv_fit)
 
+survival_list <- list()
+
+for (i in unique(surv_summary$strata)) {
+  group_data <- surv_summary$time[surv_summary$strata == i]
+  n_risk <- surv_summary$n.risk[surv_summary$strata == i]
+  n_event <- surv_summary$n.event[surv_summary$strata == i]
+  survival <- surv_summary$surv[surv_summary$strata == i]
+  std_err <- surv_summary$std.err[surv_summary$strata == i]
+  lower_95_CI <- surv_summary$lower[surv_summary$strata == i]
+  upper_95_CI <- surv_summary$upper[surv_summary$strata == i]
+  data_frame <- data.frame(
+    time = group_data,
+    n.risk = n_risk,
+    n.event = n_event,
+    survival = survival,
+    std.err = std_err,
+    lower_95_CI = lower_95_CI,
+    upper_95_CI = upper_95_CI
+  )
+	data_frame %>%
+	mutate(across(1:7, round, digits = 3)) %>%
+	rename(
+		"Age(yr)" = 1, "N risk" = 2, "N event" = 3,
+		Survival = 4, "Std. Error" = 5, "Lower 95% CI" = 6, "Upper 95% CI" = 7) %>%
+	writexl::write_xlsx(glue("{i}_adj_ADHD_surv_fem.xlsx"))
+}
