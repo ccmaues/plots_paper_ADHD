@@ -11,13 +11,11 @@ data <- mutate(data, age = round(age, 0)) %>%
 # separate the controls
 t1 <-
 	data %>%
-  filter(age >= 10 & age <= 20) %>%
   filter(wave == "W2" & diagnosis == 0)
 # separate the cases and
 # keep just the first occurance of diagnosis
 t2 <-
   data %>%
-	filter(age >= 10 & age <= 20) %>%
   filter(!IID %in% t1$IID) %>%
   filter(diagnosis == 2) %>%
   group_by(IID) %>%
@@ -96,6 +94,7 @@ p1 <-
     legend.key.size = unit(0.1, "lines"))
   
 p1
+
 ggsave(
   "Figure10.png",
   p1,
