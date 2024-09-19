@@ -15,6 +15,9 @@ pacman::p_load(survival, survminer, survcomp)
 # status: 1 if event occurred, 0 if censored
 # PGS: polygenic score group (e.g., "High", "Medium", "Low")
 
+data <- mutate(data, age = round(age, 0)) %>%
+  filter(age >= 10 & age <= 20)
+
 # Simplify the data
 # separate the controls
 t1 <-

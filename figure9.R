@@ -8,6 +8,9 @@ source("functions_to_source.R")
 # Install and load the necessary packages
 pacman::p_load(survival, survminer, survcomp)
 
+data <- mutate(data, age = round(age, 0)) %>%
+  filter(age >= 10 & age <= 20)
+
 # Example data (replace this with your actual dataset)
 # Assuming your data frame is called df and has columns:
 # time, status, and PGS
