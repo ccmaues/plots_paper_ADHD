@@ -2,18 +2,8 @@ setwd("C:/Users/cassi/OneDrive/Área de Trabalho/github_files/plots_paper/")
 source("data_to_source.R")
 source("functions_to_source.R")
 
-###### Survival analysis for ADHD
-# probability of those in the interesting
-# quintiles of converting in the years
-# Install and load the necessary packages
 pacman::p_load(survival, survminer, survcomp)
 
-# Example data (replace this with your actual dataset)
-# Assuming your data frame is called df and has columns:
-# time, status, and PGS
-# time: time to event or censoring
-# status: 1 if event occurred, 0 if censored
-# PGS: polygenic score group (e.g., "High", "Medium", "Low")
 
 data <- mutate(data, age = round(age, 0)) %>%
   filter(age >= 10 & age <= 20)
