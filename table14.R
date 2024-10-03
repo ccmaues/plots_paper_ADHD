@@ -29,14 +29,16 @@ wd <-
   bind_rows(t1, t2) %>%
   select(IID, age, diagnosis, adjusted_PRS) %>%
   mutate(
-    risk = ntile(adjusted_PRS, 3),
+    risk = ntile(adjusted_PRS, 5),
     diagnosis = factor(diagnosis, levels = c("0", "2"), labels = c("0", "1")),
     diagnosis = as.numeric(as.character(diagnosis)),
     PRS = case_when(
-      risk == 1 ~ "Low",
-      risk == 2 ~ "Medium",
-      risk == 3 ~ "High"),
-    PRS = factor(PRS, levels = c("Low", "Medium", "High"))) %>%
+      risk == 1 ~ "1st",
+      risk == 2 ~ "2nd",
+      risk == 3 ~ "3rd",
+      risk == 4 ~ "4th",
+      risk == 5 ~ "5th"),
+    PRS = factor(PRS, levels = c("1st", "2nd", "3rd", "4th", "5th"))) %>%
     select(-adjusted_PRS, -risk) %>%
   rename(ID = 1, time = 2, status = 3) %>%
   mutate(time = round(time, digits = 0)) %>%
@@ -44,7 +46,6 @@ wd <-
 	inner_join(., select(data, IID, sex, popID, p_diagnosis), by = "IID") %>%
   rename(ID = 1) %>%
   filter(sex == "Female") %>%
-  select(-sex) %>%
   unique()
 
 #### Verification of the model

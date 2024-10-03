@@ -160,9 +160,29 @@ final <-
     common.legend = TRUE, widths = 1.5, heights = 1
   )
 
-ggsave(
-  "Figure2_v2.png", final, device = "png",
-  width = 200, height = 300, units = c("mm"),
-  dpi = 300, bg = "white")
+# ggsave(
+#   "Figure2.png", final, device = "png",
+#   width = 200, height = 300, units = c("mm"),
+#   dpi = 300, bg = "white")
 
 colors <- c("#65ADC2", "#233B43", "#E84646")
+
+opt1 <- p2 +
+  labs(x = "Age (yr)") +
+  theme(
+    legend.text = element_text(color = "white", family = "Arial", size = 10),
+    axis.line.x = element_line(color = "white"),
+    axis.ticks.x = element_line(color = "white"),
+    axis.text.x = element_text(color = "white", family = "Arial", size = 10),
+    axis.title.x = element_text(color = "white", family = "Arial", size = 10),
+    axis.line.y = element_line(color = "white"),
+    axis.ticks.y = element_line(color = "white"),
+    axis.text.y = element_text(color = "white", family = "Arial", size = 10),
+    axis.title.y = element_text(color = "white", family = "Arial", size = 10)
+  )
+
+ggsave(
+  "Figure2_v2_female.png", opt1, device = "png",
+  width = 200, height = 100, units = c("mm"),
+  dpi = 300
+)

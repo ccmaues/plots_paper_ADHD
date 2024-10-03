@@ -30,15 +30,31 @@ theme_publish() +
 labs(
   color = "PRS Quintile",
   shape = "Sex") +
-theme(
-  text = element_text(size = 7),
-  axis.text = element_text(size = 7),
-  axis.line.x = element_line(color = "black", linewidth = 0.5),
-  axis.line.y = element_line(color = "black", linewidth = 0.5),
-  legend.position = "right",
-  legend.box = "vertical")
+  theme(
+      axis.title.y = element_text(size = 7, color = "white"),
+      axis.title.x = element_text(size = 7, color = "white"),
+      axis.text = element_text(size = 7, color = "white"),
+      axis.line.y = element_line(color = "white", linewidth = 0.5),
+      axis.line.x = element_line(color = "white", linewidth = 0.5),
+      axis.ticks.y = element_line(color = "white", linewidth = 0.5),
+      axis.ticks.x = element_blank(),
+      legend.position = "bottom",
+      legend.text = element_text(color = "white"),
+      legend.title = element_text(color = "white"),
+      panel.grid.major.y = element_blank(),
+      panel.grid.major.x = element_blank(),
+      panel.background = element_rect(fill = "transparent", color = NA),
+      plot.background = element_rect(fill = "transparent", color = NA)
+  )
+# theme(
+#   text = element_text(size = 7),
+#   axis.text = element_text(size = 7),
+#   axis.line.x = element_line(color = "black", linewidth = 0.5),
+#   axis.line.y = element_line(color = "black", linewidth = 0.5),
+#   legend.position = "right",
+#   legend.box = "vertical")
 
 ggsave(
   "Figure5_version1.png", device = "png",
-  width = 85, height = 80, units = c("mm"),
-  dpi = 300, bg = "white")
+  width = 100, height = 100, units = c("mm"),
+  dpi = 300, bg = "transparent")

@@ -100,4 +100,4 @@ ggsave(
   units = "mm",
   height = 80,
   width = 150,
-  bg = "white")
+  bg = "transparent")

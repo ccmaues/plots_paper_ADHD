@@ -101,15 +101,20 @@ p_w0 <- ggplot(fp_w0, aes(x = Variables, y = Explained_variance, fill = Variable
     x = "") +
   scale_fill_manual(values = colors_and_tags) +
 	scale_y_continuous(limits = c(0, 2), n.breaks = 10) +
-  theme_publish() +
+  theme_void() +
   theme(
-    text = element_text(size = 7),
-    axis.text = element_text(size = 7),
-    axis.line.y = element_line(color = "black", linewidth = 0.5),
-    axis.line.x = element_line(color = "black", linewidth = 0.5),
-    axis.ticks.y = element_line(color = "black", linewidth = 0.5),
-    axis.ticks.x = element_blank(),
-    legend.position = "none"
+      axis.title.y = element_text(size = 7, color = "white"),
+      axis.title.x = element_text(size = 7, color = "white"),
+      axis.text = element_text(size = 7, color = "white"),
+      axis.line.y = element_line(color = "white", linewidth = 0.5),
+      axis.line.x = element_line(color = "white", linewidth = 0.5),
+      axis.ticks.y = element_line(color = "white", linewidth = 0.5),
+      axis.ticks.x = element_blank(),
+      legend.position = "none",
+      panel.grid.major.y = element_blank(),
+      panel.grid.major.x = element_blank(),
+      panel.background = element_rect(fill = "transparent", color = NA),
+      plot.background = element_rect(fill = "transparent", color = NA)
   )
 
 p_w1 <- ggplot(fp_w1, aes(x = Variables, y = Explained_variance, fill = Variables)) +
@@ -120,15 +125,20 @@ p_w1 <- ggplot(fp_w1, aes(x = Variables, y = Explained_variance, fill = Variable
     x = "") +
   scale_fill_manual(values = colors_and_tags) +
 	scale_y_continuous(limits = c(0, 2), n.breaks = 10) +
-  theme_publish() +
+  theme_void() +
   theme(
-    text = element_text(size = 7),
-    axis.text = element_text(size = 7),
-    axis.line.y = element_line(color = "black", linewidth = 0.5),
-    axis.line.x = element_line(color = "black", linewidth = 0.5),
-    axis.ticks.y = element_line(color = "black", linewidth = 0.5),
-    axis.ticks.x = element_blank(),
-    legend.position = "none"
+      axis.title.y = element_text(size = 7, color = "white"),
+      axis.title.x = element_text(size = 7, color = "white"),
+      axis.text = element_text(size = 7, color = "white"),
+      axis.line.y = element_line(color = "white", linewidth = 0.5),
+      axis.line.x = element_line(color = "white", linewidth = 0.5),
+      axis.ticks.y = element_line(color = "white", linewidth = 0.5),
+      axis.ticks.x = element_blank(),
+      legend.position = "none",
+      panel.grid.major.y = element_blank(),
+      panel.grid.major.x = element_blank(),
+      panel.background = element_rect(fill = "transparent", color = NA),
+      plot.background = element_rect(fill = "transparent", color = NA)
   )
 
 p_w2 <- ggplot(fp_w2, aes(x = Variables, y = Explained_variance, fill = Variables)) +
@@ -139,15 +149,20 @@ p_w2 <- ggplot(fp_w2, aes(x = Variables, y = Explained_variance, fill = Variable
     x = "") +
   scale_fill_manual(values = colors_and_tags) +
 	scale_y_continuous(limits = c(0, 2), n.breaks = 10) +
-  theme_publish() +
+  theme_void() +
   theme(
-    text = element_text(size = 7),
-    axis.text = element_text(size = 7),
-    axis.line.y = element_line(color = "black", linewidth = 0.5),
-    axis.line.x = element_line(color = "black", linewidth = 0.5),
-    axis.ticks.y = element_line(color = "black", linewidth = 0.5),
-    axis.ticks.x = element_blank(),
-    legend.position = "none"
+      axis.title.y = element_text(size = 7, color = "white"),
+      axis.title.x = element_text(size = 7, color = "white"),
+      axis.text = element_text(size = 7, color = "white"),
+      axis.line.y = element_line(color = "white", linewidth = 0.5),
+      axis.line.x = element_line(color = "white", linewidth = 0.5),
+      axis.ticks.y = element_line(color = "white", linewidth = 0.5),
+      axis.ticks.x = element_blank(),
+      legend.position = "none",
+      panel.grid.major.y = element_blank(),
+      panel.grid.major.x = element_blank(),
+      panel.background = element_rect(fill = "transparent", color = NA),
+      plot.background = element_rect(fill = "transparent", color = NA)
   )
 
 library(patchwork)
@@ -163,3 +178,39 @@ ggsave(
   device = "png",
   bg = "white"
   )
+
+ggsave(
+  "figure14_v2_A.png",
+  p_all,
+  height = 50,
+  width = 180,
+  units = "mm",
+  device = "png"
+)
+
+ggsave(
+  "figure14_v2_B.png",
+  p_w0,
+  height = 50,
+  width = 180,
+  units = "mm",
+  device = "png"
+)
+
+ggsave(
+  "figure14_v2_C.png",
+  p_w0,
+  height = 50,
+  width = 180,
+  units = "mm",
+  device = "png"
+)
+
+ggsave(
+  "figure14_v2_D.png",
+  p_w0,
+  height = 50,
+  width = 180,
+  units = "mm",
+  device = "png"
+)

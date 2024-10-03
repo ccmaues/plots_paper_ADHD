@@ -26,14 +26,16 @@ wd2 <-
   bind_rows(t1, t2) %>%
   select(IID, age, diagnosis, adjusted_PRS) %>%
   mutate(
-    risk = ntile(adjusted_PRS, 3),
+    risk = ntile(adjusted_PRS, 5),
     diagnosis = factor(diagnosis, levels = c("0", "2"), labels = c("0", "1")),
     diagnosis = as.numeric(as.character(diagnosis)),
     PRS = case_when(
-      risk == 1 ~ "Low",
-      risk == 2 ~ "Medium",
-      risk == 3 ~ "High"),
-    PRS = factor(PRS, levels = c("Low", "Medium", "High"))) %>%
+      risk == 1 ~ "1st",
+      risk == 2 ~ "2nd",
+      risk == 3 ~ "3rd",
+      risk == 4 ~ "4th",
+      risk == 5 ~ "5th"),
+    PRS = factor(PRS, levels = c("1st", "2nd", "3rd", "4th", "5th"))) %>%
     select(-adjusted_PRS, -risk) %>%
   rename(ID = 1, time = 2, status = 3) %>%
   mutate(time = round(time, digits = 0)) %>%
@@ -43,6 +45,7 @@ wd2 <-
 
 surv_fit <- survfit(Surv(time, status) ~ PRS, data = filter(wd2, sex == "Female"))
 
+survdiff(Surv(time, status) ~ PRS, data = filter(wd2, sex == "Female"))
 ggthemr("fresh")
 
 p <-
@@ -60,8 +63,8 @@ p <-
     break.y.by = 0.05,
     xlab = "Age (yr)",
     ylab = "Diagnosis Probability",
-    legend.labs = c("Low", "Medium", "High"),
-    legend.title = "Risk level",
+    legend.labs = c("1st", "2nd", "3rd", "4th", "5th"),
+    legend.title = "PRS Quintile",
     xlim = c(min(wd2$time), max(wd2$time)),
     ylim = c(0, 0.25),
     risk.table = "abs_pct",
@@ -81,17 +84,35 @@ p1 <-
   p$plot +
   scale_x_continuous(n.breaks = 10) +
   scale_color_manual(values = c(
-		"Low" = "#6a9716",
-		"Medium" = "#FF5733",
-		"High" = "#C70039")) +
-  theme(
-    text = element_text(family = "Arial"),
-    axis.text.x = element_text(size = 7),
-    axis.text.y = element_text(size = 7),
-    axis.title = element_text(size = 7),
-    legend.title = element_text(size = 7),
-    legend.text = element_text(size = 7),
-    legend.key.size = unit(0.1, "lines"))
+		"1st" = "#6a9716",
+    "2nd" = "#80b81a",
+		"3rd" = "#FF5733",
+    "4th" = "#C70039",
+		"5th" = "#98002b")) +
+    theme(
+      axis.title.y = element_text(size = 7, color = "white"),
+      axis.title.x = element_text(size = 7, color = "white"),
+      axis.text = element_text(size = 7, color = "white"),
+      axis.line.y = element_line(color = "white", linewidth = 0.5),
+      axis.line.x = element_line(color = "white", linewidth = 0.5),
+      axis.ticks.y = element_line(color = "white", linewidth = 0.5),
+      axis.ticks.x = element_blank(),
+      legend.position = "bottom",
+      panel.grid.major.y = element_blank(),
+      panel.grid.major.x = element_blank(),
+      panel.background = element_rect(fill = "transparent", color = NA),
+      plot.background = element_rect(fill = "transparent", color = NA),
+      legend.key.size = unit(0.1, "lines"),
+      legend.title = element_text(size = 7),
+      legend.text = element_text(size = 7))
+  # theme(
+  #   text = element_text(family = "Arial"),
+  #   axis.text.x = element_text(size = 7),
+  #   axis.text.y = element_text(size = 7),
+  #   axis.title = element_text(size = 7),
+  #   legend.title = element_text(size = 7),
+  #   legend.text = element_text(size = 7),
+  #   legend.key.size = unit(0.1, "lines"))
   
 p1
 
@@ -102,4 +123,5 @@ ggsave(
   units = "mm",
   height = 80,
   width = 150,
-  bg = "white")
+  bg = "transparent"
+  )

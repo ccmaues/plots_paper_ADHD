@@ -113,7 +113,7 @@ ggplot(for_plot_male, aes(ntile, prevalence * 100, color = wave, group = wave)) 
   scale_x_discrete(labels = new_x_axis) +
   scale_y_continuous(n.breaks = 10, limits = c(5, 24)) +
   theme_publish(base_size = 7) +
-  labs(y = "\nPrevalence\n", x = "\nPRS quintile\n") +
+  labs(y = "\nPrevalence\n", x = "PRS quintile") +
   theme(
     text = element_text(family = "Arial"),
     axis.line = element_line(linewidth = 1),
@@ -124,8 +124,27 @@ ggplot(for_plot_male, aes(ntile, prevalence * 100, color = wave, group = wave)) 
   
 finalv2
 
+# ggsave(
+#   "Figure1_only_males.png", finalv2, device = "png",
+#   width = 100, height = 60, units = c("mm"),
+#   dpi = 300, bg = "white"
+# )
+
+opt <- finalv2 +
+theme(
+  legend.text = element_text(color = "white"),
+  axis.line.x = element_line(color = "white"),
+  axis.ticks.x = element_line(color = "white"),
+  axis.text.x = element_text(color = "white"),
+  axis.title.x = element_text(color = "white"),
+  axis.line.y = element_line(color = "white"),
+  axis.ticks.y = element_line(color = "white"),
+  axis.text.y = element_text(color = "white"),
+  axis.title.y = element_text(color = "white")
+  )
+
 ggsave(
-  "Figure1_only_males.png", finalv2, device = "png",
-  width = 100, height = 60, units = c("mm"),
-  dpi = 300, bg = "white"
+  "Figure1_v2_male.png", opt, device = "png",
+  width = 120, height = 60, units = c("mm"),
+  dpi = 300
 )
